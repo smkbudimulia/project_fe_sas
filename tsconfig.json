@@ -24,9 +24,9 @@
     }
   },
 // <<<<<<< HEAD
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/master_data/akademik/thn_ajaran/PlusIcons.jsx", "app/master_data/akademik/kelas/hal.js", "app/master_data/akademik/kelas/hal.jsx", "app/master_data/guru/data_guru/tes.tsx", "app/master_data/siswa/data_siswa/fix.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/master_data/akademik/thn_ajaran/PlusIcons.jsx", "app/master_data/akademik/kelas/hal.js", "app/master_data/akademik/kelas/hal.jsx", "app/master_data/guru/data_guru/tes.tsx", "app/master_data/siswa/data_siswa/fix.tsx", "server.js"],
 
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/master_data/akademik/thn_ajaran/PlusIcons.jsx", "app/master_data/akademik/kelas/hal.js", "app/master_data/akademik/kelas/hal.jsx", "app/master_data/guru/data_guru/tes.tsx", "app/components/navbar/page.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/master_data/akademik/thn_ajaran/PlusIcons.jsx", "app/master_data/akademik/kelas/hal.js", "app/master_data/akademik/kelas/hal.jsx", "app/master_data/guru/data_guru/tes.tsx", "app/components/navbar/page.jsx", "server.js"],
 // >>>>>>> 93499a9217fd3634a5fe0b09f157dccaf6126ccc
   "exclude": ["node_modules"]
 }
