@@ -1,0 +1,47 @@
+Halaman yang akan di bangun:
+
+Dashboard
+Absensi
+Naik Kelas
+Master Data
+ -Akademik
+    -Tahun Ajaran
+    -Kelas
+    -Jurusan
+ -Siswa
+    -Siswa
+    -Rombel
+ -Guru
+    -Mapel
+    -Guru
+Administrator
+ -Profile
+ -Add User
+ -Log Out
+ -login
+Setting
+
+
+sejauh ini sudah bagus dan keren perkembangan projek SAS
+catatan : dalam scrip tidak ada error tapi banyak peringatan yang harus di benahi/ setidaknya dipahami   
+         kenapa banyak peringatan saat aplikasi dijalnkan, seperti :
+            "Warning: Received `true` for a non-boolean attribute `ml-2`.
+
+               If you want to write it to the DOM, pass a string instead: ml-2="true" or ml-2={value.toString()}.
+                  at tr
+                  at thead
+                  at table
+                  at div
+                  at div"
+            dan seterusnya yang ada di terminal.
+
+(sejauh ini sudah bagus dan keren perkembangan projek SAS, hanya Perlu di ingat setiap scrip yang dituliskan harus dimengerti
+dan dipahami serta jalur foldernya. komentar setiap scrip yang penting juga perlu dicatat)
+
+REVISI KE
+1.
+2.
+3. Di tabel mapel, untuk rombel dan id_kelas di hilangkan
+4.
+5. -Di tabel siswa, untuk email, pass, foto dan barcode dilewati terlebih dahulu
+   -Di tabel guru, untuk id_mapel, email, pass, foto, walas, barcode, id_kelas dan rombel juga dilewati terlebih dahulu
