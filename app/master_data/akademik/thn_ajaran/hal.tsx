@@ -233,24 +233,41 @@ export default function Tahun_Ajaran() {
     aktif: "",
   });
   // Handle perubahan input
-  const handleChange1 = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
+  // const handleChange1 = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value } = e.target;
+  //   setFormData({
+  //     ...formData,
+  //     [name]: value,
+  //   });
+  // };
+  // const handleChange = (e: React.ChangeEvent<HTMLElement>) => {
+  //   if (e.target instanceof HTMLInputElement) {
+  //     const { name, value } = e.target;
+  //     setFormData({
+  //       ...formData,
+  //       [name]: value,
+  //     });
+  //     console.log(e.target.value);
+  //   } else if (e.target instanceof HTMLSelectElement) {
+  //     // Logika untuk select
+  //     console.log(e.target.value);
+  //   }
+  // };
   const handleChange = (e: React.ChangeEvent<HTMLElement>) => {
     if (e.target instanceof HTMLInputElement) {
       const { name, value } = e.target;
+      console.log(`Input field changed: ${name} = ${value}`);
       setFormData({
         ...formData,
         [name]: value,
       });
-      console.log(e.target.value);
     } else if (e.target instanceof HTMLSelectElement) {
-      // Logika untuk select
-      console.log(e.target.value);
+      const { name, value } = e.target;
+      console.log(`Dropdown changed: ${name} = ${value}`);
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
     }
   };
 
