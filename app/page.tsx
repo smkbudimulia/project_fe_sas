@@ -1317,7 +1317,7 @@ const Page = () => {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder=""
-          className="pointer-events-auto"
+          className="pointer-events-auto absolute opacity-0 w-0 h-0"
         />
       </div>
       {/* <div>
