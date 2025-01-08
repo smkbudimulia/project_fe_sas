@@ -537,6 +537,7 @@ const Page = () => {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       handleSubmit1(event);
+      window.location.reload();
     }
   };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

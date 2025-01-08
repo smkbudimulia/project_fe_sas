@@ -102,9 +102,6 @@ const Navbar: React.FC<NavbarProps> = (props) => {
 
   const handleMenuClick = (menu: string) => {
     setActiveMenu(menu);
-    // Remove or modify any logic that changes `isOpen` to false
-    // Example:
-    // setIsOpen(false); // Remove this if present
   };
 
   const handleLogout = async () => {

@@ -354,16 +354,29 @@ export default function DataSiswa() {
   };
 
   // Memfilter data berdasarkan searchTerm
-  const filteredData = admins.filter((item) => {
-    // Asumsikan 'kelas' memiliki properti 'kelas' untuk dicari
-    return (
-      item.nama_admin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.alamat.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.jenis_kelamin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.no_telp.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  const filteredData = Array.isArray(admins)
+  ? admins.filter((item) => {
+      const term = (searchTerm || "").toLowerCase();
+      return (
+        item.nama_admin?.toLowerCase().includes(term) ||
+        item.alamat?.toLowerCase().includes(term) ||
+        item.jenis_kelamin?.toLowerCase().includes(term) ||
+        item.no_telp?.toLowerCase().includes(term) ||
+        item.email?.toLowerCase().includes(term)
+      );
+    })
+  : [];
+
+  // const filteredData = admins.filter((item) => {
+  //   // Asumsikan 'kelas' memiliki properti 'kelas' untuk dicari
+  //   return (
+  //     item.nama_admin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     item.alamat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     item.jenis_kelamin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     item.no_telp.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     item.email.toLowerCase().includes(searchTerm.toLowerCase())
+  //   );
+  // });
 
   // Menghitung pagination
   const totalData = filteredData.length; // Total item setelah difilter

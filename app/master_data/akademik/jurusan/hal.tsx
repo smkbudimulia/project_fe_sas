@@ -597,7 +597,7 @@ export default function _Rombel() {
                       onClick={showDeleteModal}
                       className="px-4 py-2 bg-red-600 text-white rounded text-base"
                     >
-                      Hapus Siswa Terpilih
+                      Hapus Rombel Terpilih
                     </button>
 
                     {/* Modal Konfirmasi Penghapusan */}
