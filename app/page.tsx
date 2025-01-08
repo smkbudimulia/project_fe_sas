@@ -732,6 +732,11 @@ const Page = () => {
           keterangan,
         });
 
+        if (response.data && response.data.message) {
+          // Tampilkan toast dengan nama siswa dan status
+          toast.success(response.data.message);
+        }
+
         // Perbarui state absensi di frontend
         setAbsensi((prevDrop) =>
           prevDrop.map((item) =>
