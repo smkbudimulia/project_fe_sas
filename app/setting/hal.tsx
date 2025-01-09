@@ -266,6 +266,7 @@ const logo1: ArrayBuffer = new ArrayBuffer(8); // Contoh ArrayBuffer
 // Membuat URL objek dari ArrayBuffer
 const imageUrl = arrayBufferToUrl(logo1);
 
+
   return (
     <>
     <div className='bg-slate-100 min-h-screen'>
@@ -273,9 +274,9 @@ const imageUrl = arrayBufferToUrl(logo1);
         <div className="flex flex-col space-y-4">
           {/* Kolom 1 */}
           <div className='bg-white p-4 rounded-lg shadow-md'> 
-            <div className="text-slate-600 text-lg font-semibold mb-4">Jam Sekolah</div>
+            <div className="text-slate-600 text-lg font-semibold mb-4">Setting Waktu Absensi</div>
             <div className="bg-white shadow-md rounded-lg border border-slate-300 p-4">
-              <h2 className="text-lg font-semibold mb-4"> Hari dan Atur Waktu</h2>
+              <h2 className="text-lg font-semibold mb-4"> Set Hari dan Waktu</h2>
               {/* Checkbox Rendering untuk Hari */}
               <div className="flex flex-wrap mb-4">
                 <div className="flex items-center mr-4 mb-2">
@@ -352,7 +353,7 @@ const imageUrl = arrayBufferToUrl(logo1);
                 {/* Bagian waktu datang, pulang, dan keterlambatan */}
                 <div className="flex flex-row flex-wrap gap-4">
                   <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-slate-600 mb-2">Waktu Datang</h2>
+                    <h2 className="text-lg font-semibold text-slate-600 mb-2">Jam Datang</h2>
                     <div className="flex flex-col">
                     <div className="flex items-center space-x-4">
                       <div className="flex flex-col">
@@ -408,65 +409,9 @@ const imageUrl = arrayBufferToUrl(logo1);
 
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-slate-600 mb-2">Waktu Pulang</h2>
-                    <div className="flex flex-col">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm text-slate-600 mb-1">Dari</span>
-                        <input
-                          type="time"
-                          value={departureTimes.from}
-                          onChange={(e) => {
-                            const timeValue = e.target.value;
-                            const [hours, minutes] = timeValue.split(':').map(Number);
-  
-                            if (timeValue === '') {
-                              handleTimeChange('departure', 'libur', 'from'); // Simpan nilai 'libur' jika waktu kosong
-                              return;
-                            }
-  
-                            if (minutes > 59) {
-                              alert('Menit tidak boleh lebih dari 59');
-                              return; // Batalkan perubahan
-                            }
-  
-                            handleTimeChange('departure', timeValue, 'from');
-                          }}
-                          
-                        />
-                      </div>
-                      <span className="mt-7">-</span>
-                      <div className="flex flex-col">
-                        <span className="text-sm text-slate-600 mb-1">Sampai</span>
-                        <input
-                          type="time"
-                          value={departureTimes.to}
-                          onChange={(e) => {
-                            const timeValue = e.target.value;
-                            const [hours, minutes] = timeValue.split(':').map(Number);
-  
-                            if (timeValue === '') {
-                              handleTimeChange('departure', 'libur', 'to'); // Simpan nilai 'libur' jika waktu kosong
-                              return;
-                            }
-  
-                            if (minutes > 59) {
-                              alert('Menit tidak boleh lebih dari 59');
-                              return; // Batalkan perubahan
-                            }
-  
-                            handleTimeChange('departure', timeValue, 'to');
-                          }}
-                          
-                        />
-                      </div>
-                    </div>
 
-                    </div>
-                  </div>
                   <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-slate-600 mb-2">Keterlambatan</h2>
+                    <h2 className="text-lg font-semibold text-slate-600 mb-2">Jam Terlambat</h2>
                     <div className="flex flex-col">
                     <div className="flex items-center space-x-4">
                       <div className="flex flex-col">
@@ -522,7 +467,67 @@ const imageUrl = arrayBufferToUrl(logo1);
 
                     </div>
                   </div>
+
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-slate-600 mb-2">Jam Pulang</h2>
+                    <div className="flex flex-col">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm text-slate-600 mb-1">Dari</span>
+                        <input
+                          type="time"
+                          value={departureTimes.from}
+                          onChange={(e) => {
+                            const timeValue = e.target.value;
+                            const [hours, minutes] = timeValue.split(':').map(Number);
+  
+                            if (timeValue === '') {
+                              handleTimeChange('departure', 'libur', 'from'); // Simpan nilai 'libur' jika waktu kosong
+                              return;
+                            }
+  
+                            if (minutes > 59) {
+                              alert('Menit tidak boleh lebih dari 59');
+                              return; // Batalkan perubahan
+                            }
+  
+                            handleTimeChange('departure', timeValue, 'from');
+                          }}
+                          
+                        />
+                      </div>
+                      <span className="mt-7">-</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm text-slate-600 mb-1">Sampai</span>
+                        <input
+                          type="time"
+                          value={departureTimes.to}
+                          onChange={(e) => {
+                            const timeValue = e.target.value;
+                            const [hours, minutes] = timeValue.split(':').map(Number);
+  
+                            if (timeValue === '') {
+                              handleTimeChange('departure', 'libur', 'to'); // Simpan nilai 'libur' jika waktu kosong
+                              return;
+                            }
+  
+                            if (minutes > 59) {
+                              alert('Menit tidak boleh lebih dari 59');
+                              return; // Batalkan perubahan
+                            }
+  
+                            handleTimeChange('departure', timeValue, 'to');
+                          }}
+                          
+                        />
+                      </div>
+                    </div>
+
+                    </div>
+                  </div>
+                  
                 </div>
+
                 <div className="flex justify-end mt-4">
                   <button 
                     className="px-4 py-2 bg-teal-400 text-white rounded-md hover:bg-teal-500"
@@ -535,7 +540,7 @@ const imageUrl = arrayBufferToUrl(logo1);
             </div>
             {/* Kolom 2 - Hasil Simpanan */}
             <div className="p-4 mt-4 border rounded-lg bg-slate-600 text-white">
-              <h2 className="text-lg font-semibold mb-4">Hasil</h2>
+              <h2 className="text-lg font-semibold mb-4">Hari Aktif Sekolah</h2>
               <div className="p-4 border rounded-md bg-white text-slate-600">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {settings.length > 0 ? (
@@ -548,23 +553,16 @@ const imageUrl = arrayBufferToUrl(logo1);
                     <div key={item.id_setting} className="bg-white p-4 shadow-2xl rounded">
                       <h2 className="text-lg font-bold text-gray-700">{item.hari}</h2>
                       <p>
-                        <strong>Jam Masuk Awal:</strong> {jamMasukAwal}
-                      </p>
+                        <strong>Jam Masuk :</strong> {jamMasukAwal} <strong>-</strong> {jamMasukAkhir}
+                      </p>   
                       <p>
-                        <strong>Jam Masuk Akhir:</strong> {jamMasukAkhir}
-                      </p>
+                        <strong>Jam Terlambat :</strong> {jamTerlambatAwal} <strong>-</strong> {jamTerlambatAkhir}
+                      </p>         
                       <p>
-                        <strong>Jam Pulang Awal:</strong> {jamPulangAwal}
-                      </p>
-                      <p>
-                        <strong>Jam Pulang Akhir:</strong> {jamPulangAkhir}
-                      </p>
-                      <p>
-                        <strong>Jam Terlambat Awal:</strong> {jamTerlambatAwal}
-                      </p>
-                      <p>
-                        <strong>Jam Terlambat Akhir:</strong> {jamTerlambatAkhir}
-                      </p>
+                        <strong>Jam Pulang :</strong> {jamPulangAwal} <strong>-</strong> {jamPulangAkhir}
+                      </p>                     
+                      
+                      
                     </div>
                   )})
                 ) : (
@@ -595,7 +593,7 @@ const imageUrl = arrayBufferToUrl(logo1);
 
               {/* Logo Upload */}
               <div className="flex items-center mb-4">
-                <label htmlFor="logo" className="mr-4 text-slate-600 font-semibold">Upload Logo</label>
+                <label htmlFor="logo" className="mr-4 text-slate-600 font-semibold">Pilih</label>
                 <input
                   type="file"
                   id="logo"

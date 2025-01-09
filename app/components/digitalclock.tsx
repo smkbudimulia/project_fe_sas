@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react";
 
-export default function DigitalClock() {
-  const [time, setTime] = useState(new Date());
+function DigitalClock() {
+  const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const interval = setInterval(() => {
       setTime(new Date());
     }, 1000);
 
-    return () => clearInterval(timer);
+    // Membersihkan interval saat komponen di-unmount
+    return () => clearInterval(interval);
   }, []);
 
-  // Function to get the day name
-  const getDayName = (dayIndex) => {
+  // Jika waktu belum diatur (saat SSR), tampilkan "Loading..."
+  if (!time) {
+    return <div className="text-2xl font-bold text-gray-800">Loading...</div>;
+  }
+
+  const getDayName = (dayIndex: number): string => {
     const days = [
       "Minggu",
       "Senin",
@@ -20,13 +25,12 @@ export default function DigitalClock() {
       "Rabu",
       "Kamis",
       "Jumat",
-      "Sabtu"
+      "Sabtu",
     ];
     return days[dayIndex];
   };
 
-  // Function to get the month name
-  const getMonthName = (monthIndex) => {
+  const getMonthName = (monthIndex: number): string => {
     const months = [
       "Januari",
       "Februari",
@@ -39,7 +43,7 @@ export default function DigitalClock() {
       "September",
       "Oktober",
       "November",
-      "Desember"
+      "Desember",
     ];
     return months[monthIndex];
   };
@@ -64,3 +68,5 @@ export default function DigitalClock() {
     </div>
   );
 }
+
+export default DigitalClock;

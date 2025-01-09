@@ -30,7 +30,7 @@ const LoginForm = () => {
         Cookies.set('nama_admin', response.data.data.nama_admin, { expires: expireDate });
         Cookies.set('status', response.data.data.status, { expires: expireDate });
         Cookies.set('id_admin', response.data.data.id_admin, { expires: expireDate });
-        window.location.href = '../dash';
+        window.location.href = '../';
       }
     } catch (error: unknown) {
       if (error instanceof Error && 'response' in error) {

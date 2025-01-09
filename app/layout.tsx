@@ -7,9 +7,24 @@ import Sidebar from './components/sidebar/page';
 
 const poppins = Poppins({ weight: ["300", "400", "400"], subsets: ["latin"] });
 
+// export const metadata: Metadata = {
+//   title: "Nextjs Authentication",
+//   description: "Nextjs Authentication",
+// };
+
 export const metadata: Metadata = {
-  title: "Nextjs Authentication",
-  description: "Nextjs Authentication",
+  title: "Sistem Absensi",
+  description: "Sistem Absensi",
+  icons: {
+    icon: {
+      rel: "icon",
+      url: "/favicon1.ico",
+    },
+    apple: {
+      rel: "apple-touch-icon",
+      url: "/favicon1.ico",
+    },
+  },
 };
 
 export default function RootLayout({

@@ -1,5 +1,6 @@
 // components/Navbar.js
 import React from 'react';
+import tes from "./dash/page";
 
 const Navbar = () => {
   return (
@@ -20,12 +21,11 @@ const Navbar = () => {
         {/* Tombol di sebelah kanan */}
         <div className="flex-shrink-0">
           <a
-            href="https://www.smkbudimuliapakisaji.sch.id/"
-            target="_blank"
+            href="./dash"
             rel="noopener noreferrer"
             className="bg-teal-400 text-white text-sm font-medium px-4 py-2 rounded-3xl hover:bg-teal-600 hover:text-white transition duration-300"
           >
-            WEB SMK BUDI MULIA PAKISAJI
+            DASHBOARD
           </a>
         </div>
       </div>

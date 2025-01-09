@@ -2,10 +2,13 @@
 import { useState, useEffect, useRef } from "react";
 import Navbar from "./header";
 import DataTable from "./components/dataTabel";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie"; // Import js-cookie
-import { toast, ToastContainer } from "react-toastify";
+import { toast, ToastContainer, ToastOptions } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import moment from "moment";
+import { useRouter } from "next/navigation";
+import DigitalClock from "./components/digitalclock";
 import {
   addSiswa,
   fetchSiswa,
@@ -41,10 +44,21 @@ interface AbsensiItem {
 }
 interface Siswa {
   id_siswa: string;
+  nama_siswa: string;
   // Properti lain yang ada dalam data siswa, seperti nama atau umur, bisa ditambahkan di sini
 }
 
 const Page = () => {
+  const router = useRouter();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    // console.log(token);
+    if (!token) {
+      router.push("../login");
+      return;
+    }
+    axios.defaults.headers.common["Authorization"] = token;
+  }, [router]);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   const handleDropdownToggle = () => {
@@ -58,7 +72,7 @@ const Page = () => {
         `${baseUrl}/joinNonMaster/nama-siswa-kelas`
       );
       setSiswaData(response.data.data); // Menyimpan data ke state kelas
-      console.log("total", response.data);
+      // console.log("total", response.data);
     } catch (error) {
       console.error("Fetch error:", error); // Menangani kesalahan
     }
@@ -74,25 +88,38 @@ const Page = () => {
         `${baseUrl}/joinNonMaster/total-kelas-siswa`
       );
       setKelas(response.data.data); // Menyimpan data ke state kelas
-      console.log("total", response.data);
+      // console.log("total", response.data);
     } catch (error) {
       console.error("Fetch error:", error); // Menangani kesalahan
     }
   };
+
+  
+
   useEffect(() => {
-    fetchKelasSiswaTotal(); // Panggil fungsi fetch saat komponen di-mount
+    fetchKelasSiswaTotal(); 
+    
+    const interval = setInterval(() => {
+      fetchKelasSiswaTotal();
+    }, 1000);
+
+    // Bersihkan interval saat komponen dibongkar
+    return () => clearInterval(interval);// Panggil fungsi fetch saat komponen di-mount
+    
   }, []);
 
   //   const headers = Object.keys(siswaData[0]);
+ //state jam digital
+
 
   const tableColumns = [
     { header: "Kelas", accessor: "kelas" },
     { header: "Jumlah Siswa", accessor: "total_siswa" },
     { header: "H", accessor: "total_hadir_perkelas" },
-    { header: "S", accessor: "s" },
-    { header: "I", accessor: "i" },
-    { header: "A", accessor: "a" },
-    { header: "T", accessor: "t" },
+    { header: "S", accessor: "total_sakit_perkelas" },
+    { header: "I", accessor: "total_izin_perkelas" },
+    { header: "A", accessor: "total_alpa_perkelas" },
+    { header: "T", accessor: "total_terlambat_perkelas" },
     { header: "Walas", accessor: "walas" },
   ];
 
@@ -102,7 +129,8 @@ const Page = () => {
   const handleRowClick = (row: any, index: any) => {
     // Set indeks baris yang diklik untuk mengubah latar belakang
     setClickedRowIndex(index);
-    console.log("Baris diklik:", row);
+    setIdSiswa(row.id_siswa);
+    // console.log("Baris diklik:", row);
   };
   // Menghapus highlight saat pengguna mengklik di luar tabel
   useEffect(() => {
@@ -115,7 +143,7 @@ const Page = () => {
         !buttonRef.current.contains(event.target as Node)
       ) {
         setClickedRowIndex(null); // Reset indeks baris yang diklik
-        console.log("Klik terdeteksi di luar tabel dan tombol Kirim");
+        // console.log("Klik terdeteksi di luar tabel dan tombol Kirim");
       }
     };
 
@@ -159,9 +187,9 @@ const Page = () => {
     fetch(`${baseUrl}/siswa/all-siswa`)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Data dari API:", data); // Cek seluruh data yang diterima
+        // console.log("Data dari API:", data); // Cek seluruh data yang diterima
         if (Array.isArray(data.data)) {
-          console.log("Data yang diterima adalah array sakit:", data.data); // Cek data yang ada dalam array
+          // console.log("Data yang diterima adalah array sakit:", data.data); // Cek data yang ada dalam array
           setSiswaSakitData(data.data); // Set data jika array
         } else {
           console.error("Data yang diterima bukan array:", data); // Tampilkan error jika data tidak berupa array
@@ -174,7 +202,7 @@ const Page = () => {
 
   // Memeriksa nilai state siswaSakitData setelah diperbarui
   useEffect(() => {
-    console.log("Siswa Sakit Data updated:", siswaSakitData); // Pastikan state terupdate
+    // console.log("Siswa Sakit Data updated:", siswaSakitData); // Pastikan state terupdate
   }, [siswaSakitData]);
 
   //function untuk search
@@ -217,24 +245,33 @@ const Page = () => {
   const [id_siswa, setIdSiswa] = useState<string | null>(null);
   //Handle untuk ngirim sakit
   const handleSakitSubmit = async () => {
+    const namaSiswaList = await fetchSiswa();
     try {
       const data = {
         id_siswa: id_siswa, // Ganti dengan state atau variabel yang memuat ID siswa
         keterangan: "Sakit",
       };
 
-      const response = await axios.post(`${baseUrl}/siswa-absensi-sakit`, data);
-      console.log("sakit bisa", response);
+      const response = await axios.post(`${baseUrl}/absensi/add-siswa-absensi-sakit`, data);
+      // console.log("sakit bisa", response);
       if (!response) {
         toast.error(`Error: ${response}`);
         return;
       }
+     
+      const response2 = await axios.get(`${baseUrl}/siswa/all-siswa`); 
+      const data2 = response2.data.data;
+      const siswa = data2.find((siswa: any) => siswa.id_siswa === id_siswa);
+        toast.success(`${siswa.nama_siswa} Sakit tidak masuk `);
 
-      toast.success("Absensi sakit berhasil dicatat!");
-      console.log(response.data);
-    } catch (error) {
-      console.error("Terjadi kesalahan:", error);
-      toast("Gagal mencatat absensi sakit. Coba lagi nanti.");
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        console.error("Axios error:", error.response?.data);
+      } else if (error instanceof Error) {
+        console.error("Error:", error.message);
+      } else {
+        console.error("Kesalahan yang tidak terduga");
+      }
     }
   };
 
@@ -292,9 +329,9 @@ const Page = () => {
     fetch(`${baseUrl}/siswa/all-siswa`)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Data dari API:", data); // Cek seluruh data yang diterima
+        // console.log("Data dari API:", data); // Cek seluruh data yang diterima
         if (Array.isArray(data.data)) {
-          console.log("Data yang diterima adalah array keterangan:", data.data); // Cek data yang ada dalam array
+          // console.log("Data yang diterima adalah array keterangan:", data.data); // Cek data yang ada dalam array
           setSiswaKeteranganLainData(data.data); // Set data jika array
         } else {
           console.error("Data yang diterima bukan array:", data); // Tampilkan error jika data tidak berupa array
@@ -306,9 +343,9 @@ const Page = () => {
   }, []);
 
   // Memeriksa nilai state siswaKeteranganLainData setelah diperbarui
-  useEffect(() => {
-    console.log("Siswa KeteranganLain Data updated:", siswaKeteranganLainData); // Pastikan state terupdate
-  }, [siswaKeteranganLainData]);
+  // useEffect(() => {
+  //   // console.log("Siswa KeteranganLain Data updated:", siswaKeteranganLainData); // Pastikan state terupdate
+  // }, [siswaKeteranganLainData]);
 
   //function untuk search
   const [searchTermKeterangan, setSearchTermKeterangan] = useState("");
@@ -333,21 +370,59 @@ const Page = () => {
     filteredSiswaKeterangan.length / keteranganItemsPerPage
   );
 
-  //Handle untuk ngirim keterangan lain
-  const handleKeteranganSubmit = () => {
-    // Perbarui data `kelas` dengan menambah `s` untuk semua item
-    const updatedKelas = kelas.map((item) => {
-      // Pastikan item memiliki properti `s` yang akan ditingkatkan
-      if (item.i !== undefined) {
-        return {
-          ...item,
-          i: item.i + 1, // Tambahkan 1 ke nilai `s`
-        };
-      }
-      return item;
-    });
+  const [siswa, setSiswa] = useState([]);
+  const fetchSiswa = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}/siswa/all-siswa`);
+      console.log("API Siswa:", response); // Debugging tambahan
+  
+      const data = response.data;
+      const namaSiswaList = data.data.map((siswa: any) => siswa.nama_siswa);
+      
+      // Menyimpan nama siswa dalam state
+      setSiswa(namaSiswaList);
+  
+      // Mengembalikan nama siswa yang pertama kali diambil
+      return namaSiswaList;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast.error('Terjadi kesalahan saat mengambil data.');
+    }
+  };
 
-    setKelas(updatedKelas);
+  //Handle untuk ngirim keterangan lain
+  const handleKeteranganSubmit = async () => {
+    
+    const namaSiswaList = await fetchSiswa();
+    try {
+      const data = {
+        id_siswa: id_siswa, // Ganti dengan state atau variabel yang memuat ID siswa
+        keterangan: "Izin",
+      };
+
+      
+
+      const response = await axios.post(`${baseUrl}/absensi/add-siswa-absensi-izin`, data);
+      // console.log("sakit bisa", response);
+      if (!response) {
+        toast.error(`Error: ${response}`);
+        return;
+      }
+
+      const response2 = await axios.get(`${baseUrl}/siswa/all-siswa`); 
+      const data2 = response2.data.data;
+      const siswa = data2.find((siswa: any) => siswa.id_siswa === id_siswa);
+        toast.success(`${siswa.nama_siswa} Izin tidak masuk `);
+      // console.log(response.data);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        console.error("Axios error:", error.response?.data);
+      } else if (error instanceof Error) {
+        console.error("Error:", error.message);
+      } else {
+        console.error("Kesalahan yang tidak terduga");
+      }
+    }
   };
   // Fungsi untuk menambahkan siswa yang dipilih ke selectedKeteranganLain
   const handleKeteranganLainSelect = (item: Item) => {
@@ -407,9 +482,9 @@ const Page = () => {
     fetch(`${baseUrl}/siswa/all-siswa`)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Data dari API:", data); // Cek seluruh data yang diterima
+        // console.log("Data dari API:", data); // Cek seluruh data yang diterima
         if (Array.isArray(data.data)) {
-          console.log("Data yang diterima adalah array keterangan:", data.data); // Cek data yang ada dalam array
+          // console.log("Data yang diterima adalah array keterangan:", data.data); // Cek data yang ada dalam array
           setSiswaPulangData(data.data); // Set data jika array
         } else {
           console.error("Data yang diterima bukan array:", data); // Tampilkan error jika data tidak berupa array
@@ -422,7 +497,7 @@ const Page = () => {
 
   // Memeriksa nilai state siswaKeteranganLainData setelah diperbarui
   useEffect(() => {
-    console.log("Siswa Pulang updated:", siswaPulangData); // Pastikan state terupdate
+    // console.log("Siswa Pulang updated:", siswaPulangData); // Pastikan state terupdate
   }, [siswaPulangData]);
 
   //function untuk search
@@ -534,10 +609,15 @@ const Page = () => {
   //   }
   // };
   // Fungsi untuk menangani tombol Enter
+  // const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if (event.key === "Enter") {
+  //     handleSubmit1(event);
+  //     window.location.reload();
+  //   }
+  // };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       handleSubmit1(event);
-      window.location.reload();
     }
   };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -584,10 +664,7 @@ const Page = () => {
   const handleDropdownClick = (id: string | number) => {
     setOpenDropdown((prevDrop) => (prevDrop === id ? null : id));
   };
-  //state jam digital
-  const DigitalClock = dynamic(() => import("./components/DIgitalClock"), {
-    ssr: false, // Matikan SSR
-  });
+ 
   const [message, setMessage] = useState("");
 
   const getAbsensiStatus = () => {
@@ -616,6 +693,58 @@ const Page = () => {
     }
     return { keterangan, datang, pulang };
   };
+
+  // const getAbsensiStatus = async () => {
+  //   try {
+  //     // Fetch data dari endpoint setting
+  //     const response = await axios.get(`${baseUrl}/setting/all-setting`);
+  //     const settings = response.data?.data || [];
+  
+  //     if (!settings.length) {
+  //       return "Pengaturan absensi belum tersedia.";
+  //     }
+  
+  //     // Dapatkan hari saat ini
+  //     const currentDay = moment().locale("id").format("dddd");
+  //     const currentTime = moment();
+  
+  //     // Cari pengaturan berdasarkan hari saat ini
+  //     const todaySetting = settings.find((setting: any) => setting.hari === currentDay);
+  
+  //     if (!todaySetting) {
+  //       return `Tidak ada pengaturan absensi untuk hari ${currentDay}.`;
+  //     }
+  
+  //     // Ambil dan parse jam masuk, jam pulang, dan jam terlambat
+  //     const jamMasukArray = JSON.parse(todaySetting.jam_masuk || "[]");
+  //     const jamTerlambatArray = JSON.parse(todaySetting.jam_terlambat || "[]");
+  //     const jamPulangArray = JSON.parse(todaySetting.jam_pulang || "[]");
+  
+  //     if (jamMasukArray.length < 2 || jamTerlambatArray.length < 2 || jamPulangArray.length < 2) {
+  //       return "Format waktu pada pengaturan tidak valid.";
+  //     }
+  
+  //     const [jamMasukAwal, jamMasukAkhir] = jamMasukArray;
+  //     const [jamTerlambatAwal, jamTerlambatAkhir] = jamTerlambatArray;
+  //     const [jamPulangAwal, jamPulangAkhir] = jamPulangArray;
+  
+  //     // Tentukan status absensi berdasarkan waktu saat ini
+  //     if (currentTime.isBetween(moment(jamMasukAwal, "HH:mm"), moment(jamMasukAkhir, "HH:mm"), null, "[)")) {
+  //       return { keterangan: "datang", datang: currentTime.format("HH:mm") };
+  //     } else if (currentTime.isBetween(moment(jamTerlambatAwal, "HH:mm"), moment(jamTerlambatAkhir, "HH:mm"), null, "[)")) {
+  //       return { keterangan: "terlambat", datang: currentTime.format("HH:mm") };
+  //     } else if (currentTime.isBetween(moment(jamPulangAwal, "HH:mm"), moment(jamPulangAkhir, "HH:mm"), null, "[)")) {
+  //       return { keterangan: "pulang", pulang: currentTime.format("HH:mm") };
+  //     }
+  
+  //     return { keterangan: "alpa" }; // Jika tidak masuk ke salah satu kategori
+  //   } catch (error: unknown) {
+  //     console.error("Gagal mengambil data setting:", error);
+  //     return "Terjadi kesalahan saat mengambil data pengaturan.";
+  //   }
+  // };
+
+
   const [absensi, setAbsensi] = useState<AbsensiItem[]>([]);
 
   // const handleSubmit1 = async (e: React.SyntheticEvent) => {
@@ -687,88 +816,85 @@ const Page = () => {
   //     }
   //   }
   // };
+  const showToast = (type: "success" | "error" | "warning", message: string) => {
+    const options: ToastOptions = {
+      position: "top-center",
+      className: "bg-white text-black shadow-lg rounded-lg p-4 text-center",
+      bodyClassName: "text-center",
+      style: { top: "250px" },
+    };
+
+    if (type === "success") {
+      toast.success(message, options);
+    }else if (type === "warning") {
+      toast.warning(message, options);
+    }else if (type === "error") {
+      toast.error(message, options);
+    }
+     
+  };
+
   const handleSubmit1 = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-
     const absensiStatus = getAbsensiStatus();
-
     if (typeof absensiStatus !== "string") {
-      const { keterangan, datang, pulang } = absensiStatus;
-      const tanggal = new Date().toISOString().split("T")[0]; // Atur tanggal di sini
+    const { keterangan, datang, pulang } = absensiStatus;
+    const tanggal = new Date().toISOString().split("T")[0]; // Atur tanggal di sini
+    const formattedBarcode = barcode.trim();
 
-      if (keterangan === "") {
-        toast.error("Waktu absensi tidak valid");
-        return;
-      }
-
-      const formattedBarcode = barcode.trim(); // Menghapus spasi
-
-      // Kosongkan barcode setelah beberapa detik
-      setTimeout(() => {
+    setTimeout(() => {
         setBarcode("");
-      }, 500);
+    }, 500);
 
-      try {
-        // Cek apakah ID siswa ada
-        const checkResponse = await axios.get(`${baseUrl}/siswa/all-siswa`);
+    if (keterangan === "") {
+      showToast("error","Waktu absensi tidak valid");
+        return;
+    }
 
-        // Pastikan ID siswa ada dalam respons
-        const siswaList: Siswa[] = checkResponse.data?.data || [];
-        const isSiswaValid = siswaList.some(
-          (siswa) => siswa.id_siswa === formattedBarcode
-        );
-
-        if (!isSiswaValid) {
-          toast.error("ID siswa tidak ditemukan");
-          return;
-        }
-
-        // Kirim data absensi ke backend
+    try {
         const response = await axios.post(`${baseUrl}/absensi/siswa-abseni`, {
-          id_siswa: formattedBarcode,
-          datang,
-          tanggal,
-          pulang,
-          keterangan,
+            id_siswa: formattedBarcode,
+            datang,
+            tanggal,
+            pulang,
+            keterangan,
         });
 
-        if (response.data && response.data.message) {
-          // Tampilkan toast dengan nama siswa dan status
-          toast.success(response.data.message);
-        }
+        const { message } = response.data;
+        
 
-        // Perbarui state absensi di frontend
         setAbsensi((prevDrop) =>
-          prevDrop.map((item) =>
-            item.id_siswa === formattedBarcode && item.absensi[tanggal]
-              ? {
-                  ...item,
-                  absensi: {
-                    ...item.absensi,
-                    [`${tanggal}_pulang`]: pulang, // Tambahkan waktu pulang
-                  },
-                }
-              : item
-          )
+            prevDrop.map((item) =>
+                item.id_siswa === formattedBarcode && item.absensi[tanggal]
+                    ? {
+                          ...item,
+                          absensi: {
+                              ...item.absensi,
+                              [`${tanggal}_pulang`]: pulang,
+                          },
+                      }
+                    : item
+            )
         );
 
-        // Jika absensi tidak tercatat atau tidak ada waktu datang
-        if (response.data.keterangan === "Alpa") {
-          toast.success(`${response.data.message} (Alpa)`);
+        // Gunakan toast.warning jika siswa terlambat
+        if (message.includes("Terlambat")) {
+          showToast("warning",message);
         } else {
-          toast.success(response.data.message);
+          showToast("success",message);
         }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.log(error.message);
+    } catch (error: any) {
+        if (error.response?.data?.message) {
+          showToast("error",error.response.data.message);
         } else {
-          console.log("Unknown error");
+            console.error(error);
         }
-      }
-    } else {
-      toast.error(absensiStatus); // Menampilkan pesan error jika absensiStatus adalah string
     }
-  };
+    }else {
+      showToast("error", absensiStatus); // Menampilkan pesan error jika absensiStatus adalah string
+    } 
+};
+
 
   return (
     <>
@@ -1323,7 +1449,7 @@ const Page = () => {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder=""
-          className="pointer-events-auto absolute opacity-0 w-0 h-0"
+          className="pointer-events-auto border-none outline-none"
         />
       </div>
       {/* <div>

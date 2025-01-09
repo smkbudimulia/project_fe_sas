@@ -178,18 +178,34 @@ const Navbar: React.FC<NavbarProps> = (props) => {
                 </svg>
               </button>
               <div className="flex-shrink-0 p-4">
-                <img
-                  src="/image/logo smk new2.png"
-                  alt=""
-                  width={112}
-                  height={112}
-                  className="mt-1"
-                />
-                {/* <a href="" className='text-white'>Logo</a> */}
+                <a
+                  href="https://smkbudimuliapakisaji.sch.id"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block" // Pastikan <a> memiliki area klik yang sesuai
+                >
+                  <img
+                    src="/image/logo smk new2.png"
+                    alt="Logo SMK Budi Mulia Pakisaji"
+                    width={112}
+                    height={112}
+                    className="mt-1"
+                  />
+                </a>
               </div>
             </div>
+
             <div className="block">
               <div className="ml-4 flex items-center space-x-4">
+              <div className="">
+                <a
+                  href="./"
+                  rel="noopener noreferrer"
+                  className="bg-teal-400 text-white text-sm font-medium px-4 py-2 rounded-3xl hover:bg-teal-600 hover:text-white transition duration-300"
+                >
+                  ABSENSI
+                </a>
+              </div>
                 <span className="hidden text-right md:block">
                   <span>{namaAdmin}</span>
                   <span className="block italic text-sm">{status}</span>
