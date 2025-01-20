@@ -8,7 +8,20 @@ const Navbar = () => {
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center md:pl-24 md:pr-24 ">
         {/* Logo di sebelah kiri */}
         <div className="flex-shrink-0 mb-4 md:mb-0">
-            <img src="/image/logo smk new2.png" alt="" width={112} height={112} className='mt-1'/>
+        <a
+                  href="https://smkbudimuliapakisaji.sch.id"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block" // Pastikan <a> memiliki area klik yang sesuai
+                >
+                  <img
+                    src="/image/logo smk new2.png"
+                    alt="Logo SMK Budi Mulia Pakisaji"
+                    width={112}
+                    height={112}
+                    className="mt-1"
+                  />
+                </a>
         </div>
         
         {/* Kalimat di tengah */}

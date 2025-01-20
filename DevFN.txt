@@ -46,8 +46,13 @@ REVISI KE
 5. -Di tabel siswa, untuk email, pass, foto dan barcode dilewati terlebih dahulu
    -Di tabel guru, untuk id_mapel, email, pass, foto, walas, barcode, id_kelas dan rombel juga dilewati terlebih dahulu
    nambah
-   "scriptslocal": {
+   "scripts": {
     "build": "next build",
     "start": "next start",
     "dev": "next dev"
   },
+  "scripts": {
+      "dev": "node server.js",
+      "build": "next build",
+      "start": "NODE_ENV=production node server.js"
+    },
