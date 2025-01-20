@@ -396,7 +396,7 @@ const Filters = () => {
   
       // Bersihkan interval ketika komponen dilepas
       return () => clearInterval(interval);
-    }, [monthYearOptions]);
+    }, []);
   
     useEffect(() => {
       const generateDatesArray1 = () => {
@@ -684,25 +684,23 @@ const [kelas, setKelas] = useState([]);
                         <td className="border-b text-white text-xs sm:text-xs p-2"> {index + 1} </td>
                         <td className="border-b text-white text-xs sm:text-xs p-2"> {item.nama_siswa} </td>
                         {datesArray1.map((date) => {
-                            console.log("Absensi untuk siswa:", item.id_siswa, "Tanggal:", date, "Data:", item.absensi);
+                            // console.log("Absensi untuk siswa:", item.id_siswa, "Tanggal:", date, "Data:", item.absensi);
                             
                             // Periksa nilai absensi untuk tanggal tertentu dan pulang
                             const hadir = item.absensi[date]; // Status hadir (Datang, Terlambat, Alpa)
                             const pulang = item.absensi[`${date}_pulang`]; // Status pulang (Jika ada)
-
+                            console.log( "Status Pulang:", pulang);
                             // Tentukan kelas berdasarkan status hadir dan pulang
                             let statusClass = "";
-                            if (hadir === "Alpa") {
-                              statusClass = "bg-red-500"; // Alpa
-                            } else if (hadir === "Datang" && !pulang) {
-                              statusClass = "bg-green-500 opacity-50"; // Datang tapi belum pulang
-                            } else if (hadir === "Datang" && pulang) {
-                              statusClass = "bg-green-700"; // Datang dan sudah pulang
-                            } else if (hadir === "Terlambat" && !pulang) {
-                              statusClass = "bg-gray-500 opacity-50"; // Terlambat tapi belum pulang
-                            } else if (hadir === "Terlambat" && pulang) {
-                              statusClass = "bg-gray-700"; // Terlambat dan sudah pulang
+                            let statusLabel = "-"; // Default jika tidak ada status hadir
+                            if (hadir === "Datang") {
+                              statusClass = pulang ? "bg-green-700" : " bg-green-300"; // Hijau tua jika sudah pulang, hijau muda jika belum pulang
+                              statusLabel = pulang ? "P" : "H"; // Ganti H jadi P jika ada pulang
+                            } else if (hadir === "Terlambat") {
+                              statusClass = pulang ? "bg-gray-700" : "bg-gray-300"; // Abu-abu tua jika sudah pulang, abu-abu muda jika belum pulang
+                              statusLabel = "T"; // Terlambat
                             }
+                          
 
                             return (
                               <td
@@ -710,9 +708,7 @@ const [kelas, setKelas] = useState([]);
                                 className={`border-b text-white text-xs text-center sm:text-xs p-2 ${statusClass}`}
                               >
                                 {hadir
-                                  ? hadir === "Alpa"
-                                    ? "A" // Alpa
-                                    : hadir === "Datang"
+                                  ? hadir === "Datang"
                                     ? "H" // Hadir
                                     : hadir === "Terlambat"
                                     ? "T" // Terlambat

@@ -37,7 +37,17 @@ interface Sakit {
   id: number;
   name: string;
 }
-type Kelas = { i: number }; // Tipe data untuk item dalam kelas
+type Kelas = { 
+  i: number;
+  kelas: string;
+  total_siswa: string;
+  total_hadir_perkelas: string;
+  total_sakit_perkelas: string;
+  total_izin_perkelas: string;
+  total_alpa_perkelas: string;
+  total_terlambat_perkelas: string;
+  walas: string;
+ }; // Tipe data untuk item dalam kelas
 interface AbsensiItem {
   id_siswa: string;
   absensi: { [key: string]: string | undefined }; // Waktu bisa undefined jika tidak ada
@@ -1415,7 +1425,7 @@ const Page = () => {
                 </h2>
               </div>
               <div className="overflow-x-auto h-full">
-                <DataTable
+                {/* <DataTable
                   columns={
                     tableColumns as {
                       header: string;
@@ -1423,8 +1433,60 @@ const Page = () => {
                       Cell?: ({ row }: { row: Kelas }) => JSX.Element;
                     }[]
                   }
-                  data={kelas}
-                />
+                  data={kelas} */}
+                  <table className="table-auto w-full mt-5 border-collapse border-gray-300">
+                <thead>
+                  <tr className="">
+                    <th className="text-white p-3 bg-slate-500 text-start w-1 ">
+                      No
+                    </th>
+                    <th className="text-white p-3 bg-slate-500  text-start">
+                      Kelas
+                    </th>
+                    <th className="text-white p-3 bg-slate-500  text-start">
+                      Jumlah Siswa
+                    </th>
+                    <th className="text-white p-3 bg-slate-500 ">H</th>
+                    <th className="text-white p-3 bg-slate-500 ">S</th>
+                    <th className="text-white p-3 bg-slate-500 ">I</th>
+                    <th className="text-white p-3 bg-slate-500 ">A</th>
+                    <th className="text-white p-3 bg-slate-500 ">T</th>
+                    <th className="text-white p-3 bg-slate-500 text-start">
+                      Walas
+                    </th>
+                  </tr>
+                </thead>
+                <tbody> 
+                  {kelas.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      <td className="p-3 text-white border-b text-center">
+                        {rowIndex + 1}
+                      </td>
+                      <td className="p-3 text-white border-b">{row.kelas}</td>
+                      <td className="p-3 text-white border-b">
+                        {row.total_siswa}
+                      </td>
+                      <td className="p-3 text-white border-b text-center bg-green-500">
+                        {row.total_hadir_perkelas}
+                      </td>
+                      <td className="p-3 text-white border-b text-center bg-blue-500">
+                        {row.total_sakit_perkelas}
+                      </td>
+                      <td className="p-3 text-white border-b text-center bg-orange-400 ">
+                        {row.total_izin_perkelas}
+                      </td>
+                      <td className="p-3 text-white border-b text-center bg-red-500">
+                        {row.total_alpa_perkelas}
+                      </td>
+                      <td className="p-3 text-white border-b text-center bg-gray-400 ">
+                        {row.total_terlambat_perkelas}
+                      </td>
+                      <td className="p-3 text-white border-b">{row.walas}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+               
               </div>
             </div>
           </div>
