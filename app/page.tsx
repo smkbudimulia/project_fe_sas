@@ -829,9 +829,9 @@ const Page = () => {
   const showToast = (type: "success" | "error" | "warning", message: string) => {
     const options: ToastOptions = {
       position: "top-center",
-      className: "bg-white text-black shadow-lg rounded-lg p-4 text-center",
+      className: "bg-white text-black shadow-lg rounded-lg p-4  h-24 text-xl font-bold ",
       bodyClassName: "text-center",
-      style: { top: "250px" },
+      style: { top: "250px", width:"500px"},
     };
 
     if (type === "success") {

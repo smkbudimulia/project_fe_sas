@@ -689,6 +689,44 @@ const [kelas, setKelas] = useState([]);
                             // Periksa nilai absensi untuk tanggal tertentu dan pulang
                             const hadir = item.absensi[date]; // Status hadir (Datang, Terlambat, Alpa)
                             const pulang = item.absensi[`${date}_pulang`]; // Status pulang (Jika ada)
+
+                            // Tentukan kelas berdasarkan status hadir dan pulang
+                            let statusClass = "";
+                            if (hadir === "Alpa") {
+                              statusClass = "bg-red-500"; // Alpa
+                            } else if (hadir === "Datang" && !pulang) {
+                              statusClass = "bg-green-500 opacity-50"; // Datang tapi belum pulang
+                            } else if (hadir === "Datang" && pulang) {
+                              statusClass = "bg-green-700"; // Datang dan sudah pulang
+                            } else if (hadir === "Terlambat" && !pulang) {
+                              statusClass = "bg-gray-500 opacity-50"; // Terlambat tapi belum pulang
+                            } else if (hadir === "Terlambat" && pulang) {
+                              statusClass = "bg-gray-700"; // Terlambat dan sudah pulang
+                            }
+
+                            return (
+                              <td
+                                key={`${item.id_siswa}-${date}`}
+                                className={`border-b text-white text-xs text-center sm:text-xs p-2 ${statusClass}`}
+                              >
+                                {hadir
+                                  ? hadir === "Alpa"
+                                    ? "A" // Alpa
+                                    : hadir === "Datang"
+                                    ? "H" // Hadir
+                                    : hadir === "Terlambat"
+                                    ? "T" // Terlambat
+                                    : hadir
+                                  : "-"} 
+                              </td>
+                            );
+                          })}
+                        {/* {datesArray1.map((date) => {
+                            // console.log("Absensi untuk siswa:", item.id_siswa, "Tanggal:", date, "Data:", item.absensi);
+                            
+                            // Periksa nilai absensi untuk tanggal tertentu dan pulang
+                            const hadir = item.absensi[date]; // Status hadir (Datang, Terlambat, Alpa)
+                            const pulang = item.absensi[`${date}_pulang`]; // Status pulang (Jika ada)
                             console.log( "Status Pulang:", pulang);
                             // Tentukan kelas berdasarkan status hadir dan pulang
                             let statusClass = "";
@@ -716,7 +754,7 @@ const [kelas, setKelas] = useState([]);
                                   : "-"} 
                               </td>
                             );
-                          })}
+                          })} */}
                         <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_hadir} </td>
                         <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_alpa} </td>
                         <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_sakit} </td>
