@@ -165,6 +165,110 @@ const Page = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  //State untuk kontrol popup alpa
+  const [isPopupVisibleAlpa, setIsPopupVisibleAlpa] = useState(false);
+  const [siswaAlpaData, setSiswaAlpaData] = useState([]);
+  useEffect(() => {
+    fetch(`${baseUrl}/siswa/all-siswa`)
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log("Data dari API:", data); // Cek seluruh data yang diterima
+        if (Array.isArray(data.data)) {
+          // console.log("Data yang diterima adalah array sakit:", data.data); // Cek data yang ada dalam array
+          setSiswaAlpaData(data.data); // Set data jika array
+        } else {
+          console.error("Data yang diterima bukan array:", data); // Tampilkan error jika data tidak berupa array
+        }
+      })
+      .catch((error) => {
+        console.error("Error saat mengambil data:", error); // Tangani error jika fetch gagal
+      });
+  }, []);
+  useEffect(() => {
+    // console.log("Siswa Sakit Data updated:", siswaSakitData); // Pastikan state terupdate
+  }, [siswaAlpaData]);
+
+  //function untuk search
+  const [searchTermAlpa, setSearchTermAlpa] = useState("");
+  const handleSearchAlpaChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSearchTermAlpa(event.target.value);
+  };
+
+  // State untuk pengaturan item per halaman dan halaman saat ini
+  const [alpaItemsPerPage, setAlpaItemsPerPage] = useState(5);
+  const [alpaCurrentPage, setAlpaCurrentPage] = useState(1);
+
+  // Mengurutkan data siswa berdasarkan nama dari A-Z
+  const filteredSiswaAlpa = siswaData
+  .filter((row) =>
+    row.nama_siswa.toLowerCase().includes(searchTermAlpa.toLowerCase())
+  )
+  .sort((a, b) => a.nama_siswa.localeCompare(b.nama_siswa)); // Mengurutkan A-Z
+
+  // Menghitung total halaman setelah data diterima
+  const alpaTotalPages = Math.ceil(
+    filteredSiswaAlpa.length / alpaItemsPerPage
+  );
+
+  // Fungsi untuk mengubah item per halaman
+  const handleAlpaItemsPerPageChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setAlpaItemsPerPage(parseInt(e.target.value));
+  };
+  //handle submit alpa
+  const handleAlpaSubmit = async () => {
+    
+    const namaSiswaList = await fetchSiswa();
+    try {
+      const data = {
+        id_siswa: id_siswa, // Ganti dengan state atau variabel yang memuat ID siswa
+        keterangan: "Alpa",
+      };
+
+      
+
+      const response = await axios.post(`${baseUrl}/absensi/add-siswa-absensi-alpa`, data);
+      // console.log("sakit bisa", response);
+      if (!response) {
+        toast.error(`Error: ${response}`);
+        return;
+      }
+
+      const response2 = await axios.get(`${baseUrl}/siswa/all-siswa`); 
+      const data2 = response2.data.data;
+      const siswa = data2.find((siswa: any) => siswa.id_siswa === id_siswa);
+        toast.success(`${siswa.nama_siswa} Alpa `);
+      // console.log(response.data);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        console.error("Axios error:", error.response?.data);
+      } else if (error instanceof Error) {
+        console.error("Error:", error.message);
+      } else {
+        console.error("Kesalahan yang tidak terduga");
+      }
+    }
+  };
+
+  // Fungsi untuk toggle popup Sakit
+  const togglePopupAlpa = () => {
+    if (isPopupVisibleAlpa) {
+      // Jika popup ditutup, reset kembali items per page, halaman, dan search ke default
+      setAlpaItemsPerPage(5); // Kembali ke default 5 item per halaman
+      setAlpaCurrentPage(1); // Kembali ke halaman 1
+      setSearchTermAlpa(""); // Kosongkan search input
+    }
+    setIsPopupVisibleAlpa(!isPopupVisibleAlpa); // Tampilkan atau sembunyikan popup
+  };
+
+
+
+
+
+
   // State untuk kontrol popup Sakit
   const [isPopupVisibleSakit, setIsPopupVisibleSakit] = useState(false);
   // State untuk menyimpan data sakit yang dipilih
@@ -1108,7 +1212,7 @@ const Page = () => {
                             </div>
 
                             {/* Input untuk mengisi keterangan lain */}
-                            <div className="mt-4">
+                            {/* <div className="mt-4">
                               <input
                                 type="text"
                                 placeholder="Alasannya..."
@@ -1118,7 +1222,7 @@ const Page = () => {
                                   setInputKeteranganLain(e.target.value)
                                 } // Handler untuk mengubah state keterangan lain
                               />
-                            </div>
+                            </div> */}
 
                             <div className="mt-4">
                               <table ref={tableRef} className="min-w-full">
@@ -1229,6 +1333,151 @@ const Page = () => {
                                 ref={buttonRef}
                                 className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                                 onClick={handleKeteranganSubmit} // Fungsi untuk kirim jika diperlukan
+                              >
+                                Kirim
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <button
+                      className="bg-red-500 w-32 lg:w-32 lg:text-base md:w-32 md:text-xl text-white px-4 py-2 mr-2 rounded "
+                      onClick={togglePopupAlpa}
+                    >
+                      Alpa
+                    </button>
+                    {isPopupVisibleAlpa && (
+                      <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
+                        <div className="bg-white p-3 rounded shadow-md">
+                          <div className="bg-slate-600 p-2 rounded-lg">
+                            <div className="flex items-center space-x-4">
+                              <select
+                                className="border border-gray-300 rounded px-2 py-1"
+                                value={alpaItemsPerPage} // Ganti dengan state yang sesuai
+                                onChange={handleAlpaItemsPerPageChange} // Ganti dengan handler yang sesuai
+                              >
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="12">12</option>
+                              </select>
+                              <input
+                                ref={searchInputRef}
+                                type="text"
+                                placeholder="Search..."
+                                className="border border-gray-300 rounded px-2 py-1"
+                                onChange={handleSearchAlpaChange} // Handler pencarian untuk alpa
+                              />
+                            </div>
+                            <div className="mt-4">
+                              <table ref={tableRef} className="min-w-full">
+                                <thead>
+                                  <tr
+                                    className="bg-slate-500"
+                                    // onClick={() =>
+                                    //   handleKeteranganLainSelect(item)
+                                    // }
+                                  >
+                                    <th className="text-white text-left rounded-l-lg px-4 py-2">
+                                      Nama
+                                    </th>
+                                    <th className="text-white text-left rounded-r-lg px-4 py-2">
+                                      Kelas
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {filteredSiswaAlpa
+                                    .slice(
+                                      (alpaCurrentPage - 1) *
+                                        alpaItemsPerPage,
+                                      alpaCurrentPage *
+                                        alpaItemsPerPage
+                                    )
+                                    .map((row, index) => (
+                                      <tr
+                                        key={index}
+                                        className={`cursor-pointer ${
+                                          clickedRowIndex === index
+                                            ? "bg-gray-100"
+                                            : ""
+                                        }`} // Latar belakang berubah saat baris diklik
+                                        onClick={() =>
+                                          handleRowClick(row, index)
+                                        }
+                                      >
+                                        <td className="px-4 py-2 border-b">
+                                          {row.nama_siswa}
+                                        </td>
+                                        <td className="px-4 py-2 border-b">
+                                          {row.kelas}
+                                        </td>
+                                        {/* Tambahkan sel data lain jika ada kolom tambahan */}
+                                      </tr>
+                                    ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            <div className="flex justify-between mt-4">
+                              <button
+                                className={`px-2 py-1 rounded ${
+                                  alpaTotalPages === 0 ||
+                                  alpaCurrentPage === 1
+                                    ? "bg-gray-300 cursor-not-allowed"
+                                    : "bg-teal-400 hover:bg-teal-500 text-white"
+                                }`}
+                                disabled={
+                                  alpaTotalPages === 0 ||
+                                  alpaCurrentPage === 1
+                                }
+                                onClick={() =>
+                                  setAlpaCurrentPage(
+                                    alpaCurrentPage - 1
+                                  )
+                                }
+                              >
+                                Kembali
+                              </button>
+                              <span className="text-gray-900 px-2">
+                                Page{" "}
+                                {filteredSiswaAlpa.length > 0
+                                  ? alpaCurrentPage
+                                  : 0}{" "}
+                                of {alpaTotalPages}
+                              </span>
+                              <button
+                                className={`px-2 py-1 rounded ${
+                                  alpaTotalPages === 0 ||
+                                  alpaCurrentPage === alpaTotalPages
+                                    ? "bg-gray-300 cursor-not-allowed"
+                                    : "bg-teal-400 hover:bg-teal-500 text-white"
+                                }`}
+                                disabled={
+                                  alpaTotalPages === 0 ||
+                                  alpaCurrentPage === alpaTotalPages
+                                }
+                                onClick={() =>
+                                  setAlpaCurrentPage(
+                                    alpaCurrentPage + 1
+                                  )
+                                }
+                              >
+                                Selanjutnya
+                              </button>
+                            </div>
+
+                            <div className="flex justify-between">
+                              <button
+                                className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                onClick={togglePopupAlpa} // Fungsi untuk menutup pop-up
+                              >
+                                Close
+                              </button>
+                              <button
+                                ref={buttonRef}
+                                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                onClick={handleAlpaSubmit} // Fungsi untuk kirim jika diperlukan
                               >
                                 Kirim
                               </button>
