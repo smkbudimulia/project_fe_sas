@@ -1021,7 +1021,7 @@ const Page = () => {
         className="text-center mt-14 text-7xl font-bold"
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
-        SMK BUDI MULIA
+        SMK BUDI MULIA PAKISAJI 
       </div>
 
       {/* Column 1: Input */}

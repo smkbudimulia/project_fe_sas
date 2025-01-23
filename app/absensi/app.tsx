@@ -171,55 +171,50 @@ const Filters = () => {
   // const getAttendanceStatus = (student, day) => {
   //   return student.attendance[day] || "-";
   // };
-
-  const handlePrint = () => {
-    window.print();
-  };
+  
   const handleExportExcel = () => {
     // Membuat worksheet dari data siswa
-    const wsData = filteredSiswaData.map((item, index) => {
-      const rowData = [
-        index + 1, // Nomor urut
-        item.nama_siswa, // Nama Siswa
-        ...datesArray1.map((date) => {
-          return item.absensi && item.absensi[date]
-            ? item.absensi[date] === "H"
-              ? "Hadir"
-              : item.absensi[date] === "A"
-              ? "Alpha"
-              : item.absensi[date] === "S"
-              ? "Sakit"
-              : item.absensi[date] === "I"
-              ? "Izin"
-              : item.absensi[date] === "T"
-              ? "Terlambat"
-              : "-"
-            : "-";
-        }),
-        item.absensi && item.absensi["H"] ? item.absensi["H"] : "-",
-        item.absensi && item.absensi["A"] ? item.absensi["A"] : "-",
-        item.absensi && item.absensi["S"] ? item.absensi["S"] : "-",
-        item.absensi && item.absensi["I"] ? item.absensi["I"] : "-",
-        item.absensi && item.absensi["T"] ? item.absensi["T"] : "-",
-        item.nomor_wali, // Nomor Wali
-      ];
-      return rowData;
+    const wsData = groupedData.map((item, index) => {
+        const rowData = [
+            index + 1, // Nomor urut
+            item.nama_siswa, // Nama Siswa
+            ...datesArray1.map((date) => {
+                const hadir = item.absensi[date]; // Status hadir (Datang, Terlambat, Alpa)
+                const pulang = item.absensi[`${date}_pulang`]; // Status pulang (Jika ada)
+
+                // Tentukan status berdasarkan hadir dan pulang
+                if (hadir === "Alpa") return "A"; // Alpa
+                if (hadir === "Datang" && pulang) return "H"; // Hadir dan sudah pulang
+                if (hadir === "Datang" && !pulang) return "H"; // Hadir tapi belum pulang
+                if (hadir === "Terlambat") return "T"; // Terlambat
+                if (hadir === "Izin") return "I"; // Izin
+                if (hadir === "Sakit") return "S"; // Sakit
+                return "-"; // Jika tidak ada status
+            }),
+            item.total_hadir || 0, // Total Hadir
+            item.total_alpa || 0, // Total Alpa
+            item.total_sakit || 0, // Total Sakit
+            item.total_izin || 0, // Total Izin
+            item.total_terlambat || 0, // Total Terlambat
+            item.nomor_wali || "-", // Nomor Wali
+        ];
+        return rowData;
     });
 
     // Membuat worksheet dan workbook
     const ws = XLSX.utils.aoa_to_sheet([
-      [
-        "No", // Header kolom pertama
-        "Nama Siswa", // Header kolom kedua
-        ...datesArray1.map((date) => `${date}`), // Header untuk tanggal
-        "Hadir", // Jumlah hadir
-        "Alpha", // Jumlah alpha
-        "Sakit", // Jumlah sakit
-        "Izin", // Jumlah izin
-        "Terlambat", // Jumlah terlambat
-        "Nomor Wali", // Nomor Wali
-      ],
-      ...wsData, // Data siswa
+        [
+            "No", // Header kolom pertama
+            "Nama Siswa", // Header kolom kedua
+            ...datesArray1.map((date) => `${date}`), // Header untuk tanggal
+            "H", // Jumlah hadir
+            "A", // Jumlah alpa
+            "S", // Jumlah sakit
+            "I", // Jumlah izin
+            "T", // Jumlah terlambat
+            "Nomor Wali", // Nomor Wali
+        ],
+        ...wsData, // Data siswa
     ]);
 
     const wb = XLSX.utils.book_new();
@@ -227,7 +222,8 @@ const Filters = () => {
 
     // Mengekspor file Excel
     XLSX.writeFile(wb, "Absensi_Siswa.xlsx");
-  };
+};
+
   const handleExportJPG = () => {
     // Logika untuk ekspor JPG
   };
@@ -623,14 +619,14 @@ const [kelas, setKelas] = useState([]);
                 </button>
               </div>
 
-              <div className="w-full md:w-auto flex items-center">
+              {/* <div className="w-full md:w-auto flex items-center">
                 <button
                   onClick={handlePrint}
                   className="w-full p-2 border bg-blue-500 rounded text-xs text-white sm:text-sm"
                 >
                   Print
                 </button>
-              </div>
+              </div> */}
               <div className="w-full md:w-auto flex items-center">
                 <button
                   onClick={handlePulangPagiClick}
@@ -702,8 +698,15 @@ const [kelas, setKelas] = useState([]);
                               statusClass = "bg-gray-500 opacity-50"; // Terlambat tapi belum pulang
                             } else if (hadir === "Terlambat" && pulang) {
                               statusClass = "bg-gray-700"; // Terlambat dan sudah pulang
+                            }else if (hadir === "Izin" && !pulang) {
+                              statusClass = "bg-orange-500 opacity-50"; // Terlambat tapi belum pulang
+                            } else if (hadir === "Izin" && pulang) {
+                              statusClass = "bg-orange-700"; // Terlambat dan sudah pulang
+                            }else if (hadir === "Sakit" && !pulang) {
+                              statusClass = "bg-blue-500 opacity-50"; // Terlambat tapi belum pulang
+                            } else if (hadir === "Sakit" && pulang) {
+                              statusClass = "bg-blue-700"; // Terlambat dan sudah pulang
                             }
-
                             return (
                               <td
                                 key={`${item.id_siswa}-${date}`}
@@ -716,6 +719,10 @@ const [kelas, setKelas] = useState([]);
                                     ? "H" // Hadir
                                     : hadir === "Terlambat"
                                     ? "T" // Terlambat
+                                    : hadir === "Sakit"
+                                    ? "S"
+                                    : hadir === "Izin"
+                                    ? "I"
                                     : hadir
                                   : "-"} 
                               </td>

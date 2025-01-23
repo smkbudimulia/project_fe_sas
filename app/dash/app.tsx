@@ -22,6 +22,13 @@ type Admin = {
   alamat: string;
   // Tambahkan properti lain yang sesuai dengan struktur data di tabel 'admin'
 };
+interface Kehadiran {
+  total_hadir: number;
+  total_terlambat: number;
+  total_alpa: number;
+  total_sakit: number;
+  total_izin: number;
+}
 
 const AdminPage = () => {
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -35,13 +42,16 @@ const AdminPage = () => {
     // Fungsi untuk mengambil data dari API
     const fetchData = async () => {
       try {
-        const response = await fetch(`${baseUrl}/total-kelas-siswa`);
+        const response = await fetch(`${baseUrl}/joinNonMaster/total-kelas-siswa`);
         const result = await response.json();
 
         // Memeriksa apakah response berhasil
         if (result.Status === 200) {
           // Menghitung total siswa dari response.data
-          const total = result.data.reduce((sum: number, item: DataItem) => sum + item.total_siswa, 0);
+          const total = result.data.reduce(
+            (sum: number, item: DataItem) => sum + item.total_siswa,
+            0
+          );
 
           // Menyimpan total siswa ke dalam state
           setTotalSiswa(total);
@@ -50,7 +60,7 @@ const AdminPage = () => {
           setKelas(result.data);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       }
     };
 
@@ -87,30 +97,42 @@ const AdminPage = () => {
 
   const [kelas, setKelas] = useState([]);
   const [totalSemuaSiswa, setTotalSemuaSiswa] = useState(0);
+  // const [totalSemuaKehadiran, setTotalSemuaKehadiran] = useState(0);
+  const [totalSemuaKehadiran, setTotalSemuaKehadiran] = useState<Kehadiran>({
+    total_hadir: 0,
+    total_terlambat: 0,
+    total_alpa: 0,
+    total_sakit: 0,
+    total_izin: 0
+  });
+  const [totalPerkategori, setTotalPerkategori] = useState(0);
   const [totalSemuaRombel, setTotalSemuaRombel] = useState(0);
   const [totalSemuaGuru, setTotalSemuaGuru] = useState(0);
   const fetchKelasSiswaTotal = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/joinNonMaster/total-kelas-siswa`);
-      
+      const response = await axios.get(
+        `${baseUrl}/joinNonMaster/total-kelas-siswa`
+      );
+
       // Menyimpan data ke state
-      setKelas(response.data.data); 
+      setKelas(response.data.data);
       setTotalSemuaSiswa(response.data.totalSemuaSiswa); // Simpan totalSemuaSiswa
+      setTotalSemuaKehadiran(response.data.totalKeseluruhan);
+      setTotalPerkategori(response.data.totalSemuaKategori);
       setTotalSemuaRombel(response.data.totalSemuaRombel);
       setTotalSemuaGuru(response.data.totalSemuaGuru);
-  
+
       console.log("total siswa", response.data); // Debugging
     } catch (error) {
       console.error("Fetch error:", error); // Menangani kesalahan
     }
   };
-  
+
   useEffect(() => {
     fetchKelasSiswaTotal(); // Panggil fungsi fetch saat komponen di-mount
   }, []);
-  
+
   //   const headers = Object.keys(siswaData[0]);
-  
 
   const tableColumns = [
     { header: "Kelas", accessor: "kelas" },
@@ -121,7 +143,6 @@ const AdminPage = () => {
     { header: "A", accessor: "a" },
     { header: "T", accessor: "t" },
     { header: "Walas", accessor: "walas" },
-    
   ];
 
   return (
@@ -133,11 +154,10 @@ const AdminPage = () => {
           </div>
           <div className="mt-4 flex items-end justify-between">
             <div>
-            <h1>Total Siswa: </h1>
+              <span className="text-sm font-medium">Total Siswa</span>
             </div>
-
             <span className="flex items-center gap-1 text-sm font-medium text-meta-3">
-               {totalSemuaSiswa}
+              {totalSemuaSiswa}
             </span>
           </div>
         </div>
@@ -150,7 +170,7 @@ const AdminPage = () => {
               <span className="text-sm font-medium">Total Rombel</span>
             </div>
             <span className="flex items-center gap-1 text-sm font-medium text-meta-3">
-               {totalSemuaRombel}
+              {totalSemuaRombel}
             </span>
           </div>
         </div>
@@ -168,6 +188,30 @@ const AdminPage = () => {
           </div>
         </div>
       </div>
+      <div>
+        <table className="mt-5 w-full">
+          <thead>
+            <tr>
+              <th>Total Hadir</th>
+              <th>Total Terlambat</th>
+              <th>Total Alpa</th>
+              <th>Total Sakit</th>
+              <th>Total Izin</th>
+              <th>Total Semua Kategori</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="text-center">
+              <td className="pt-4">{totalSemuaKehadiran.total_hadir}</td>
+              <td className="pt-4">{totalSemuaKehadiran.total_terlambat}</td>
+              <td className="pt-4">{totalSemuaKehadiran.total_alpa}</td>
+              <td className="pt-4">{totalSemuaKehadiran.total_sakit}</td>
+              <td className="pt-4">{totalSemuaKehadiran.total_izin}</td>
+              <td className="pt-4">{totalPerkategori}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div className="flex flex-col lg:flex-row">
         {/* Column 1: Input */}
         <div className="w-full lg:w-1/2 p-4 lg:p-6">
@@ -177,7 +221,6 @@ const AdminPage = () => {
                 <DataTable columns={tableColumns} data={kelas} />
               </div>
             </div>
-            
           </div>
         </div>
         {/* Column 2: Table */}
