@@ -775,12 +775,16 @@ useEffect(() => {
                             } else if (hadir === "Terlambat") {
                               statusLabel = pulang ? " T" : " T";
                               statusClass = pulang ? "bg-gray-700 text-white" : "bg-gray-500 text-white opacity-50";
+                            } else if (hadir === "Izin") {
+                              statusLabel = " I";
+                              statusClass =  "bg-orange-500 text-white";
+                            } else if (hadir === "Sakit") {
+                              statusLabel = " S";
+                              statusClass =  "bg-blue-500 text-white";
                             } else if (hadir === "Alpa") {
                               statusLabel = " A";
                               statusClass = "bg-red-500 text-white";
                             }
-                            
-                            console.log("Status Kehadiran:", statusLabel, "| Warna:", statusClass);
                           
                             return (
                               <td
