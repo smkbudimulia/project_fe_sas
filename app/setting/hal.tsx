@@ -75,22 +75,22 @@ const Schedule = () => {
   const [error, setError] = useState(null);
 
   const [arrivalTimes, setArrivalTimes] = useState({
-    from: 'libur',
-    to: 'libur',
+    from: '',
+    to: '',
   });
   const [departureTimes, setDepartureTimes] = useState({
-    from: 'libur',
-    to: 'libur',
+    from: '',
+    to: '',
   });
   const [latenessTimes, setLatenessTimes] = useState({
-    from: 'libur',
-    to: 'libur',
+    from: '',
+    to: '',
   });
   
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
   const handleTimeChange = (type: string, value: string, timeType: string) => {
-    const newValue = value === '' ? 'libur' : value; // Jika value kosong, simpan 'libur'
+    const newValue = value === '' ? '' : value; // Jika value kosong, simpan 'libur'
   
     if (type === 'arrival') {
       setArrivalTimes((prevTimes) => ({

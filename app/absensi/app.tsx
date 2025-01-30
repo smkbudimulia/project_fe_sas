@@ -31,6 +31,7 @@ type SiswaItem = {
   total_izin:number;
   tanggal?: string;
   keterangan?: string;
+  pulang:string;
 };
 const Filters = () => {
   // const [selectedMonthYear, setSelectedMonthYear] = useState("");
@@ -509,6 +510,7 @@ const Filters = () => {
           total_alpa: 0,
           total_sakit: 0,
           total_izin: 0,
+          pulang:item.pulang,
           absensi: {}, // Object untuk menyimpan absensi berdasarkan tanggal
           nomor_wali: item.nomor_wali,
           tanggal: new Date().toISOString(),
@@ -554,6 +556,28 @@ const [kelas, setKelas] = useState([]);
     fetchKelasSiswaTotal(); // Panggil fungsi fetch saat komponen di-mount
   }, []);
 
+   // State untuk menyimpan hari libur
+   const [liburDays, setLiburDays] = useState<string[]>([]);
+   useEffect(() => {
+    const fetchLiburDays = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/setting/all-setting`);
+        const data = await response.json();
+  
+        if (data.Status === 200) {
+          setLiburDays(data.liburDays as string[]); // Simpan daftar hari libur
+        }
+      } catch (error) {
+        console.error("Error fetching liburDays:", error);
+      }
+    };
+  
+    fetchLiburDays();
+  }, []);
+  // Cetak nilai terbaru setelah `liburDays` diperbarui
+useEffect(() => {
+  console.log("ini libur", liburDays);
+}, [liburDays]); // Efek ini akan berjalan setiap kali `liburDays` berubah
   return (
     <div className="rounded-lg max-w-full p-3 bg-slate-100">
       <div className="pt-7 ml-7">
@@ -679,89 +703,94 @@ const [kelas, setKelas] = useState([]);
                       <tr key={item.id_siswa || index}>
                         <td className="border-b text-white text-xs sm:text-xs p-2"> {index + 1} </td>
                         <td className="border-b text-white text-xs sm:text-xs p-2"> {item.nama_siswa} </td>
-                        {datesArray1.map((date) => {
-                            // console.log("Absensi untuk siswa:", item.id_siswa, "Tanggal:", date, "Data:", item.absensi);
-                            
-                            // Periksa nilai absensi untuk tanggal tertentu dan pulang
-                            const hadir = item.absensi[date]; // Status hadir (Datang, Terlambat, Alpa)
-                            const pulang = item.absensi[`${date}_pulang`]; // Status pulang (Jika ada)
-
-                            // Tentukan kelas berdasarkan status hadir dan pulang
-                            let statusClass = "";
-                            if (hadir === "Alpa") {
-                              statusClass = "bg-red-500"; // Alpa
-                            } else if (hadir === "Datang" && !pulang) {
-                              statusClass = "bg-green-500 opacity-50"; // Datang tapi belum pulang
-                            } else if (hadir === "Datang" && pulang) {
-                              statusClass = "bg-green-700"; // Datang dan sudah pulang
-                            } else if (hadir === "Terlambat" && !pulang) {
-                              statusClass = "bg-gray-500 opacity-50"; // Terlambat tapi belum pulang
-                            } else if (hadir === "Terlambat" && pulang) {
-                              statusClass = "bg-gray-700"; // Terlambat dan sudah pulang
-                            }else if (hadir === "Izin" && !pulang) {
-                              statusClass = "bg-orange-500 opacity-50"; // Terlambat tapi belum pulang
-                            } else if (hadir === "Izin" && pulang) {
-                              statusClass = "bg-orange-700"; // Terlambat dan sudah pulang
-                            }else if (hadir === "Sakit" && !pulang) {
-                              statusClass = "bg-blue-500 opacity-50"; // Terlambat tapi belum pulang
-                            } else if (hadir === "Sakit" && pulang) {
-                              statusClass = "bg-blue-700"; // Terlambat dan sudah pulang
-                            }
-                            return (
-                              <td
-                                key={`${item.id_siswa}-${date}`}
-                                className={`border-b text-white text-xs text-center sm:text-xs p-2 ${statusClass}`}
-                              >
-                                {hadir
-                                  ? hadir === "Alpa"
-                                    ? "A" // Alpa
-                                    : hadir === "Datang"
-                                    ? "H" // Hadir
-                                    : hadir === "Terlambat"
-                                    ? "T" // Terlambat
-                                    : hadir === "Sakit"
-                                    ? "S"
-                                    : hadir === "Izin"
-                                    ? "I"
-                                    : hadir
-                                  : "-"} 
-                              </td>
-                            );
-                          })}
                         {/* {datesArray1.map((date) => {
+                          // Pastikan `liburDays` tersedia sebelum digunakan
+                          const isLibur = liburDays.length > 0 
+                            ? liburDays.includes(
+                                new Date(date).toLocaleDateString('id-ID', { weekday: 'long' }) as string
+                              )
+                            : false;
+
+                          // Periksa nilai absensi untuk tanggal tertentu dan pulang
+                          const hadir = item.absensi[date]; 
+                          const pulang = item.absensi[`${date}_pulang`]; 
+
+                          let statusClass = "";
+                          if (hadir === "Alpa") {
+                            statusClass = "bg-red-500";
+                          } else if (hadir === "Datang" && !pulang) {
+                            statusClass = "bg-green-500 opacity-50";
+                          } else if (hadir === "Datang" && pulang) {
+                            statusClass = "bg-green-700";
+                          } else if (hadir === "Terlambat" && !pulang) {
+                            statusClass = "bg-gray-500 opacity-50";
+                          } else if (hadir === "Terlambat" && pulang) {
+                            statusClass = "bg-gray-700";
+                          } else if (hadir === "Izin" && !pulang) {
+                            statusClass = "bg-orange-500 opacity-50";
+                          } else if (hadir === "Izin" && pulang) {
+                            statusClass = "bg-orange-700";
+                          } else if (hadir === "Sakit" && !pulang) {
+                            statusClass = "bg-blue-500 opacity-50";
+                          } else if (hadir === "Sakit" && pulang) {
+                            statusClass = "bg-blue-700";
+                          }
+
+                          return (
+                            <td
+                              key={`${item.id_siswa}-${date}`}
+                              className={`border-b text-white text-xs text-center sm:text-xs p-2 ${statusClass}`}
+                            >
+                              {isLibur ? "Libur" : hadir ? (
+                                hadir === "Alpa" ? "A" :
+                                hadir === "Datang" ? "H" :
+                                hadir === "Terlambat" ? "T" :
+                                hadir === "Sakit" ? "S" :
+                                hadir === "Izin" ? "I" : hadir
+                              ) : "-"}
+                            </td>
+                          );
+                        })} */}
+
+{datesArray1.map((date) => {
                             // console.log("Absensi untuk siswa:", item.id_siswa, "Tanggal:", date, "Data:", item.absensi);
-                            
+                            const isLibur = liburDays.length > 0 
+                            ? liburDays.includes(
+                                new Date(date).toLocaleDateString('id-ID', { weekday: 'long' }) as string
+                              )
+                            : false;
                             // Periksa nilai absensi untuk tanggal tertentu dan pulang
                             const hadir = item.absensi[date]; // Status hadir (Datang, Terlambat, Alpa)
-                            const pulang = item.absensi[`${date}_pulang`]; // Status pulang (Jika ada)
+                            const pulang = item.pulang ? item.pulang : null; // Pastikan ada status pulang; // Status pulang (Jika ada)
                             console.log( "Status Pulang:", pulang);
                             // Tentukan kelas berdasarkan status hadir dan pulang
                             let statusClass = "";
                             let statusLabel = "-"; // Default jika tidak ada status hadir
-                            if (hadir === "Datang") {
-                              statusClass = pulang ? "bg-green-700" : " bg-green-300"; // Hijau tua jika sudah pulang, hijau muda jika belum pulang
-                              statusLabel = pulang ? "P" : "H"; // Ganti H jadi P jika ada pulang
+                            if (isLibur) {
+                              statusLabel = "Libur";
+                              statusClass = ""; // Warna kuning untuk libur
+                            } else if (hadir === "Datang") {
+                              statusLabel = pulang ? " H" : " H";
+                              statusClass = pulang ? "bg-green-700 text-white" : "bg-green-500 text-white opacity-50";  // Hijau untuk hadir
                             } else if (hadir === "Terlambat") {
-                              statusClass = pulang ? "bg-gray-700" : "bg-gray-300"; // Abu-abu tua jika sudah pulang, abu-abu muda jika belum pulang
-                              statusLabel = "T"; // Terlambat
+                              statusLabel = pulang ? " T" : " T";
+                              statusClass = pulang ? "bg-gray-700 text-white" : "bg-gray-500 text-white opacity-50";
+                            } else if (hadir === "Alpa") {
+                              statusLabel = " A";
+                              statusClass = "bg-red-500 text-white";
                             }
+                            
+                            console.log("Status Kehadiran:", statusLabel, "| Warna:", statusClass);
                           
-
                             return (
                               <td
                                 key={`${item.id_siswa}-${date}`}
                                 className={`border-b text-white text-xs text-center sm:text-xs p-2 ${statusClass}`}
                               >
-                                {hadir
-                                  ? hadir === "Datang"
-                                    ? "H" // Hadir
-                                    : hadir === "Terlambat"
-                                    ? "T" // Terlambat
-                                    : hadir
-                                  : "-"} 
+                                {statusLabel}
                               </td>
                             );
-                          })} */}
+                          })}
                         <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_hadir} </td>
                         <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_alpa} </td>
                         <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_sakit} </td>
