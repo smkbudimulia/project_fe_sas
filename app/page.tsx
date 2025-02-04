@@ -1030,6 +1030,9 @@ const Page = () => {
                       <div className="fixed inset-0 scroll-pl-1 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
                         <div className="bg-white p-3 rounded shadow-md">
                           <div className="bg-slate-600 p-2 rounded-lg">
+                            <div className="text-center text-white font-semibold py-2 ">
+                              Tabel Sakit
+                            </div>
                             <div className="flex items-center space-x-4">
                               <select
                                 className="border border-gray-300 rounded px-2 py-1"
@@ -1169,6 +1172,9 @@ const Page = () => {
                       <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
                         <div className="bg-white p-3 rounded shadow-md">
                           <div className="bg-slate-600 p-2 rounded-lg">
+                          <div className="text-center text-white font-semibold py-2 ">
+                              Tabel Izin
+                            </div>
                             <div className="flex items-center space-x-4">
                               <select
                                 className="border border-gray-300 rounded px-2 py-1"
@@ -1328,6 +1334,9 @@ const Page = () => {
                       <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-10">
                         <div className="bg-white p-3 rounded shadow-md">
                           <div className="bg-slate-600 p-2 rounded-lg">
+                          <div className="text-center text-white font-semibold py-2 ">
+                              Tabel Alpa
+                            </div>
                             <div className="flex items-center space-x-4">
                               <select
                                 className="border border-gray-300 rounded px-2 py-1"

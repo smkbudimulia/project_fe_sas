@@ -16,6 +16,19 @@ type DataItem = {
   total_siswa: number;
 };
 
+interface Siswa {
+  id_siswa: number;
+  nama_siswa: string;
+  kelas: string;
+  nomor_wali: string;
+}
+
+type AttendanceItem = {
+  keterangan: string;
+  tanggal: string;
+  // Tambahkan properti lainnya sesuai dengan struktur data Anda
+};
+
 type Admin = {
   id_admin: number;
   nama_admin: string;
@@ -145,6 +158,30 @@ const AdminPage = () => {
     { header: "Walas", accessor: "walas" },
   ];
 
+  const [alpaData, setAlpaData] = useState<Siswa[]>([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/absensi/all-absensi`);
+        const result = await response.json();
+        if (result.Status === 200) {
+          const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+          // Filter siswa dengan keterangan "Alpa"
+          const alpaSiswa = result.data.filter(
+            (item: AttendanceItem) => item.keterangan === "Alpa" && item.tanggal === today
+          );
+          setAlpaData(alpaSiswa);
+        } else {
+          console.error("Data tidak ditemukan");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-3 2xl:gap-7.5 px-6">
@@ -224,43 +261,48 @@ const AdminPage = () => {
           </div>
         </div>
         {/* Column 2: Table */}
-        <div className="w-full  lg:w-1/2 p-4 lg:p-6">
-          <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border">
-            <div className="bg-slate-600 p-2 rounded-xl">
-              <table className="min-w-full">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                      NO
-                    </th>
-                    <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                      Foto
-                    </th>
-                    <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                      Nama
-                    </th>
-                    <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                      Kelas
-                    </th>
-                    <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                      Wa Ortu
-                    </th>
+        <div className="w-full lg:w-1/2 p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border">
+        <div className="bg-slate-600 p-2 rounded-xl">
+          <table className="min-w-full">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
+                  NO
+                </th>
+                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
+                  Nama
+                </th>
+                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
+                  Kelas
+                </th>
+                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
+                  Wa Ortu
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {alpaData.length > 0 ? (
+                alpaData.map((siswa, index) => (
+                  <tr key={siswa.id_siswa}>
+                    <td className="px-6 py-4 border-b border-gray-300 text-sm">{index + 1}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-sm">{siswa.nama_siswa}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-sm">{siswa.kelas}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-sm">{siswa.nomor_wali}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm"></td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm"></td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm"></td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm"></td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm"></td>
-                  </tr>
-                  {/* Tambahkan baris lain sesuai kebutuhan */}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 border-b border-gray-300 text-sm text-center">
+                    Tidak ada siswa yang alpa
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
+      </div>
+    </div>
       </div>
     </div>
   );
