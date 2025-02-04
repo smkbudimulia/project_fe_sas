@@ -285,15 +285,15 @@ const AdminPage = () => {
               {alpaData.length > 0 ? (
                 alpaData.map((siswa, index) => (
                   <tr key={siswa.id_siswa}>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm">{index + 1}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm">{siswa.nama_siswa}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm">{siswa.kelas}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-sm">{siswa.nomor_wali}</td>
+                    <td className="px-6 py-4 border-b border-gray-300  text-white text-sm">{index + 1}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{siswa.nama_siswa}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{siswa.kelas}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{siswa.nomor_wali}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 border-b border-gray-300 text-sm text-center">
+                  <td colSpan={4} className="px-6 py-4 border-b border-gray-300 text-white text-sm text-center ">
                     Tidak ada siswa yang alpa
                   </td>
                 </tr>
