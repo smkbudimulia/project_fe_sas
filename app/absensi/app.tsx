@@ -21,7 +21,7 @@ interface AbsensiItem {
 type SiswaItem = {
   id_siswa: number;
   nama_siswa: string;
-  absensi: { [key: string]: string }; // absensi adalah objek dengan string sebagai key dan value
+  absensi: Record<string, { keterangan: string; pulang: boolean }>; // absensi adalah objek dengan string sebagai key dan value
   nomor_wali: string;
   kelas:string;
   total_hadir:number;
@@ -31,7 +31,7 @@ type SiswaItem = {
   total_izin:number;
   tanggal?: string;
   keterangan?: string;
-  pulang:string;
+  // pulang:string;
 };
 const Filters = () => {
   // const [selectedMonthYear, setSelectedMonthYear] = useState("");
@@ -180,22 +180,27 @@ const Filters = () => {
             index + 1, // Nomor urut
             item.nama_siswa, // Nama Siswa
             ...datesArray1.map((date) => {
-                const hadir = item.absensi[date]; // Status hadir (Datang, Terlambat, Alpa)
-                const pulang = item.absensi[`${date}_pulang`]; // Status pulang (Jika ada)
+                const isLibur = liburDays.includes(
+                    new Date(date).toLocaleDateString("id-ID", { weekday: "long" })
+                );
+
+                const absensi = item.absensi[date] || {}; // Ambil data absensi berdasarkan tanggal
+                const hadir = absensi.keterangan; // Status hadir
+                const pulang = absensi.pulang; // Status pulang
 
                 // Tentukan status berdasarkan hadir dan pulang
-                if (hadir === "Alpa") return "A"; // Alpa
-                if (hadir === "Datang" && pulang) return "H"; // Hadir dan sudah pulang
-                if (hadir === "Datang" && !pulang) return "H"; // Hadir tapi belum pulang
-                if (hadir === "Terlambat") return "T"; // Terlambat
-                if (hadir === "Izin") return "I"; // Izin
-                if (hadir === "Sakit") return "S"; // Sakit
+                if (isLibur) return "Libur";
+                if (hadir === "Datang") return pulang ? "H✔" : "H";
+                if (hadir === "Sakit") return "S";
+                if (hadir === "Izin") return "I";
+                if (hadir === "Alpa") return "A";
+                if (hadir === "Terlambat") return pulang ? "T✔" : "T";
                 return "-"; // Jika tidak ada status
             }),
             item.total_hadir || 0, // Total Hadir
-            item.total_alpa || 0, // Total Alpa
             item.total_sakit || 0, // Total Sakit
             item.total_izin || 0, // Total Izin
+            item.total_alpa || 0, // Total Alpa
             item.total_terlambat || 0, // Total Terlambat
             item.nomor_wali || "-", // Nomor Wali
         ];
@@ -209,9 +214,9 @@ const Filters = () => {
             "Nama Siswa", // Header kolom kedua
             ...datesArray1.map((date) => `${date}`), // Header untuk tanggal
             "H", // Jumlah hadir
-            "A", // Jumlah alpa
-            "S", // Jumlah sakit
-            "I", // Jumlah izin
+            "S", // Jumlah alpa
+            "I", // Jumlah sakit
+            "A", // Jumlah izin
             "T", // Jumlah terlambat
             "Nomor Wali", // Nomor Wali
         ],
@@ -224,6 +229,7 @@ const Filters = () => {
     // Mengekspor file Excel
     XLSX.writeFile(wb, "Absensi_Siswa.xlsx");
 };
+
 
   const handleExportJPG = () => {
     // Logika untuk ekspor JPG
@@ -495,12 +501,53 @@ const Filters = () => {
     : absensiData;
 
     // Contoh data siswa dengan absensi
-    const groupedData = filteredSiswaData.reduce<SiswaItem[]>((acc, item) => {
-      // Cari siswa berdasarkan id_siswa
-      let existingStudent = acc.find((siswa) => siswa.id_siswa === item.id_siswa);
+    // const groupedData = filteredSiswaData.reduce<SiswaItem[]>((acc, item) => {
+    //   // Cari siswa berdasarkan id_siswa
+    //   let existingStudent = acc.find((siswa) => siswa.id_siswa === item.id_siswa);
       
+    //   if (!existingStudent) {
+    //     // Jika siswa belum ada di grup, tambahkan siswa baru
+    //     existingStudent = {
+    //       id_siswa: item.id_siswa,
+    //       nama_siswa: item.nama_siswa,
+    //       kelas: item.kelas,
+    //       total_hadir: 0,
+    //       total_terlambat: 0,
+    //       total_alpa: 0,
+    //       total_sakit: 0,
+    //       total_izin: 0,
+    //       pulang:item.pulang,
+    //       absensi: {}, // Object untuk menyimpan absensi berdasarkan tanggal
+    //       nomor_wali: item.nomor_wali,
+    //       tanggal: new Date().toISOString(),
+    //     };
+    //     acc.push(existingStudent);
+    //   }
+      
+    //   // Isi data absensi berdasarkan tanggal
+    //   if (item.tanggal && item.tanggal.startsWith(selectedMonthYear)) {
+    //     existingStudent.absensi[item.tanggal] = item.keterangan ?? "";
+        
+    //     // Hitung total berdasarkan keterangan
+    //     if (item.keterangan === "Datang") {
+    //       existingStudent.total_hadir++;
+    //     } else if (item.keterangan === "Alpa") {
+    //       existingStudent.total_alpa++;
+    //     } else if (item.keterangan === "Terlambat") {
+    //       existingStudent.total_terlambat++;
+    //     } else if (item.keterangan === "Sakit") {
+    //       existingStudent.total_sakit++;
+    //     } else if (item.keterangan === "Izin") {
+    //       existingStudent.total_izin++;
+    //     }
+    //   }
+      
+    //   return acc;
+    // }, []);
+    const groupedData = filteredSiswaData.reduce<SiswaItem[]>((acc, item) => {
+      let existingStudent = acc.find((siswa) => siswa.id_siswa === item.id_siswa);
+  
       if (!existingStudent) {
-        // Jika siswa belum ada di grup, tambahkan siswa baru
         existingStudent = {
           id_siswa: item.id_siswa,
           nama_siswa: item.nama_siswa,
@@ -508,20 +555,21 @@ const Filters = () => {
           total_hadir: 0,
           total_terlambat: 0,
           total_alpa: 0,
-          total_sakit: 0,
+          total_sakit: 0,      
           total_izin: 0,
-          pulang:item.pulang,
-          absensi: {}, // Object untuk menyimpan absensi berdasarkan tanggal
+          absensi: {}, // Menyimpan absensi berdasarkan tanggal
           nomor_wali: item.nomor_wali,
-          tanggal: new Date().toISOString(),
         };
         acc.push(existingStudent);
       }
-      
-      // Isi data absensi berdasarkan tanggal
+  
       if (item.tanggal && item.tanggal.startsWith(selectedMonthYear)) {
-        existingStudent.absensi[item.tanggal] = item.keterangan ?? "";
-        
+        existingStudent.absensi[item.tanggal] = {
+          keterangan: item.keterangan ?? "",
+          pulang: (item as any).pulang ?? false,
+ // Simpan status pulang per hari
+        };
+  
         // Hitung total berdasarkan keterangan
         if (item.keterangan === "Datang") {
           existingStudent.total_hadir++;
@@ -535,10 +583,9 @@ const Filters = () => {
           existingStudent.total_izin++;
         }
       }
-      
+  
       return acc;
-    }, []);
-    
+  }, []);
     
 const [kelas, setKelas] = useState([]);
   const fetchKelasSiswaTotal = async () => {
@@ -675,25 +722,25 @@ useEffect(() => {
                     
                     {datesArray1.map((date, index) => (
                       <th key={index}
-                      className="text-white text-xs sm:text-xs p-2 bg-slate-500">{`${date}`}
+                      className="text-white text-xs sm:text-xs p-2 text-center bg-slate-500">{`${date}`}
                       </th>
                     ))}
-                    <th className="text-white text-xs sm:text-xs p-2 bg-slate-500">
+                    <th className="text-white text-xs sm:text-xs p-2 text-center bg-slate-500">
                       H
                     </th>
-                    <th className="text-white text-xs sm:text-xs p-2 bg-slate-500">
-                      A
-                    </th>
-                    <th className="text-white text-xs sm:text-xs p-2 bg-slate-500">
+                    <th className="text-white text-xs sm:text-xs p-2 text-center bg-slate-500">
                       S
                     </th>
-                    <th className="text-white text-xs sm:text-xs p-2 bg-slate-500">
+                    <th className="text-white text-xs sm:text-xs p-2 text-center bg-slate-500">
                       I
                     </th>
-                    <th className="text-white text-xs sm:text-xs p-2 bg-slate-500">
+                    <th className="text-white text-xs sm:text-xs p-2 text-center bg-slate-500">
+                      A
+                    </th>
+                    <th className="text-white text-xs sm:text-xs p-2 text-center bg-slate-500">
                       T
                     </th>
-                    <th className="text-white text-xs sm:text-xs p-2 bg-slate-500 rounded-r-lg">
+                    <th className="text-white text-xs sm:text-xs p-2 text-center bg-slate-500 rounded-r-lg">
                       No Wali
                     </th>
                   </tr>
@@ -703,104 +750,148 @@ useEffect(() => {
                       <tr key={item.id_siswa || index}>
                         <td className="border-b text-white text-xs sm:text-xs p-2"> {index + 1} </td>
                         <td className="border-b text-white text-xs sm:text-xs p-2"> {item.nama_siswa} </td>
-                        {/* {datesArray1.map((date) => {
-                          // Pastikan `liburDays` tersedia sebelum digunakan
-                          const isLibur = liburDays.length > 0 
-                            ? liburDays.includes(
-                                new Date(date).toLocaleDateString('id-ID', { weekday: 'long' }) as string
-                              )
-                            : false;
+                       {/* {datesArray1.map((date) => {
+  // Periksa apakah tanggal tersebut adalah hari libur
+  const isLibur = liburDays.length > 0 
+    ? liburDays.includes(
+        new Date(date).toLocaleDateString('id-ID', { weekday: 'long' }) as string
+      )
+    : false;
 
-                          // Periksa nilai absensi untuk tanggal tertentu dan pulang
-                          const hadir = item.absensi[date]; 
-                          const pulang = item.absensi[`${date}_pulang`]; 
+  const hadir = item.absensi[date];  // Status hadir (Datang, Terlambat, Alpa)
+  const pulang = item.pulang; // Status pulang (Jika ada)
+  console.log(`Tanggal: ${date}, Hadir: ${hadir}, Pulang: ${pulang}`);  // Debugging line
+  // Tentukan kelas dan label berdasarkan status hadir dan pulang
+  let statusLabel = "-"; // Default jika tidak ada status hadir
+  let statusClass = "";
 
-                          let statusClass = "";
-                          if (hadir === "Alpa") {
-                            statusClass = "bg-red-500";
-                          } else if (hadir === "Datang" && !pulang) {
-                            statusClass = "bg-green-500 opacity-50";
-                          } else if (hadir === "Datang" && pulang) {
-                            statusClass = "bg-green-700";
-                          } else if (hadir === "Terlambat" && !pulang) {
-                            statusClass = "bg-gray-500 opacity-50";
-                          } else if (hadir === "Terlambat" && pulang) {
-                            statusClass = "bg-gray-700";
-                          } else if (hadir === "Izin" && !pulang) {
-                            statusClass = "bg-orange-500 opacity-50";
-                          } else if (hadir === "Izin" && pulang) {
-                            statusClass = "bg-orange-700";
-                          } else if (hadir === "Sakit" && !pulang) {
-                            statusClass = "bg-blue-500 opacity-50";
-                          } else if (hadir === "Sakit" && pulang) {
-                            statusClass = "bg-blue-700";
-                          }
+  // Jika hari tersebut adalah hari libur, tampilkan "Libur"
+  if (isLibur) {
+    statusLabel = "Libur";
+    statusClass = "bg-yellow-500 text-white"; // Warna kuning untuk libur
+  } else if (hadir === "Datang") {
+    // Jika siswa hadir tapi belum pulang
+    if (!pulang) {
+      statusLabel = "⏳ Hadir";
+      statusClass = "bg-green-500 text-white opacity-50"; // Hijau dengan transparansi jika belum pulang
+    } else {
+      // Jika siswa hadir dan sudah pulang
+      statusLabel = "✅ Pulang";
+      statusClass = "bg-green-700 text-white"; // Hijau penuh jika sudah pulang
+    }
+  } else if (hadir === "Terlambat") {
+    statusLabel = pulang ? "🕒 Telat & Pulang" : "⏰ Terlambat";
+    statusClass = pulang ? "bg-gray-700 text-white" : "bg-gray-500 text-white opacity-50"; // Abu-abu untuk terlambat
+  } else if (hadir === "Alpa") {
+    statusLabel = "❌ Tidak Hadir";
+    statusClass = "bg-red-500 text-white"; // Merah untuk tidak hadir
+  }
 
-                          return (
-                            <td
-                              key={`${item.id_siswa}-${date}`}
-                              className={`border-b text-white text-xs text-center sm:text-xs p-2 ${statusClass}`}
-                            >
-                              {isLibur ? "Libur" : hadir ? (
-                                hadir === "Alpa" ? "A" :
-                                hadir === "Datang" ? "H" :
-                                hadir === "Terlambat" ? "T" :
-                                hadir === "Sakit" ? "S" :
-                                hadir === "Izin" ? "I" : hadir
-                              ) : "-"}
-                            </td>
-                          );
-                        })} */}
+  // Log untuk memastikan status dan kelas yang diterapkan
+  console.log("Status Kehadiran:", statusLabel, "| Warna:", statusClass);
 
+  return (
+    <td
+      key={`${item.id_siswa}-${date}`}
+      className={`border-b text-xs text-center sm:text-xs p-2 ${statusClass}`} // Menambahkan kelas warna di sini
+    >
+      {statusLabel} {/* Menampilkan status dengan warna yang sudah didefinisikan 
+    </td>
+  );
+})} */}
 {datesArray1.map((date) => {
-                            // console.log("Absensi untuk siswa:", item.id_siswa, "Tanggal:", date, "Data:", item.absensi);
+    const isLibur = liburDays.includes(
+        new Date(date).toLocaleDateString("id-ID", { weekday: "long" })
+    );
+
+    const absensi = item.absensi[date] || {}; // Ambil data absensi berdasarkan tanggal
+    const hadir = absensi.keterangan; // Status hadir
+    const pulang = absensi.pulang; // Status pulang
+
+    let statusClass = "";
+    let statusLabel = "-"; // Default jika tidak ada absensi
+
+    if (isLibur) {
+      statusLabel = "Libur";
+      statusClass = "";
+    } else if (hadir === "Datang") {
+      statusLabel = pulang ? "H✔" : "H";
+      statusClass = pulang
+        ? "bg-green-700 text-white"
+        : "bg-green-500 text-white opacity-50";
+    } else if (hadir === "Terlambat") {
+      statusLabel = pulang ? "T✔" : "T";
+      statusClass = pulang
+        ? "bg-gray-700 text-white"
+        : "bg-gray-500 text-white opacity-50";
+    } else if (hadir === "Izin") {
+      statusLabel = "I";
+      statusClass = "bg-orange-500 text-white";
+    } else if (hadir === "Sakit") {
+      statusLabel = "S";
+      statusClass = "bg-blue-500 text-white";
+    } else if (hadir === "Alpa") {
+      statusLabel = "A";
+      statusClass = "bg-red-500 text-white";
+    }
+
+    return (
+      <td key={`${item.id_siswa}-${date}`}
+          className={`border-b text-white text-xs text-center p-2 ${statusClass}`}>
+        {statusLabel}
+      </td>
+    );
+})}
+
+
+                        {/* {datesArray1.map((date) => {
+                            // Periksa apakah tanggal tersebut adalah hari libur
                             const isLibur = liburDays.length > 0 
-                            ? liburDays.includes(
-                                new Date(date).toLocaleDateString('id-ID', { weekday: 'long' }) as string
-                              )
-                            : false;
-                            // Periksa nilai absensi untuk tanggal tertentu dan pulang
-                            const hadir = item.absensi[date]; // Status hadir (Datang, Terlambat, Alpa)
-                            const pulang = item.pulang ? item.pulang : null; // Pastikan ada status pulang; // Status pulang (Jika ada)
-                            console.log( "Status Pulang:", pulang);
-                            // Tentukan kelas berdasarkan status hadir dan pulang
-                            let statusClass = "";
+                              ? liburDays.includes(
+                                  new Date(date).toLocaleDateString('id-ID', { weekday: 'long' }) as string
+                                )
+                              : false;
+
+                            const hadir = item.absensi[date];  // Status hadir (Datang, Terlambat, Alpa)
+                            const pulang = item.pulang; // Status pulang (Jika ada)
+
+                            // Tentukan kelas dan label berdasarkan status hadir dan pulang
                             let statusLabel = "-"; // Default jika tidak ada status hadir
+                            let statusClass = "";
+
+                            // Jika hari tersebut adalah hari libur, tampilkan "Libur"
                             if (isLibur) {
                               statusLabel = "Libur";
-                              statusClass = ""; // Warna kuning untuk libur
+                              statusClass = "bg-yellow-500 text-white"; // Warna kuning untuk libur
                             } else if (hadir === "Datang") {
-                              statusLabel = pulang ? " H" : " H";
-                              statusClass = pulang ? "bg-green-700 text-white" : "bg-green-500 text-white opacity-50";  // Hijau untuk hadir
+                              statusLabel = pulang ? "✅ Pulang" : "⏳ Hadir";
+                              statusClass = pulang ? "bg-green-700 text-white" : "bg-green-500 text-white opacity-50"; // Hijau untuk hadir
                             } else if (hadir === "Terlambat") {
-                              statusLabel = pulang ? " T" : " T";
-                              statusClass = pulang ? "bg-gray-700 text-white" : "bg-gray-500 text-white opacity-50";
-                            } else if (hadir === "Izin") {
-                              statusLabel = " I";
-                              statusClass =  "bg-orange-500 text-white";
-                            } else if (hadir === "Sakit") {
-                              statusLabel = " S";
-                              statusClass =  "bg-blue-500 text-white";
+                              statusLabel = pulang ? "🕒 Telat & Pulang" : "⏰ Terlambat";
+                              statusClass = pulang ? "bg-gray-700 text-white" : "bg-gray-500 text-white opacity-50"; // Abu-abu untuk terlambat
                             } else if (hadir === "Alpa") {
-                              statusLabel = " A";
-                              statusClass = "bg-red-500 text-white";
+                              statusLabel = "❌ Tidak Hadir";
+                              statusClass = "bg-red-500 text-white"; // Merah untuk tidak hadir
                             }
-                          
+
+                            // Log untuk memastikan status dan kelas yang diterapkan
+                            console.log("Status Kehadiran:", statusLabel, "| Warna:", statusClass);
+
                             return (
                               <td
                                 key={`${item.id_siswa}-${date}`}
-                                className={`border-b text-white text-xs text-center sm:text-xs p-2 ${statusClass}`}
+                                className={`border-b text-xs text-center sm:text-xs p-2 ${statusClass}`} // Menambahkan kelas warna di sini
                               >
-                                {statusLabel}
+                                {statusLabel} {/* Menampilkan status dengan warna yang sudah didefinisikan
                               </td>
                             );
-                          })}
-                        <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_hadir} </td>
-                        <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_alpa} </td>
-                        <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_sakit} </td>
-                        <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_izin} </td>
-                        <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.total_terlambat} </td>
-                        <td className="border-b text-white text-center text-xs sm:text-xs p-2"> {item.nomor_wali && (
+                          })} */}
+                        <td className="border-b text-white text-center text-xs sm:text-xs p-2 font-bold"> {item.total_hadir} </td>
+                        <td className="border-b text-white text-center text-xs sm:text-xs p-2 font-bold"> {item.total_sakit} </td>
+                        <td className="border-b text-white text-center text-xs sm:text-xs p-2 font-bold"> {item.total_izin} </td>
+                        <td className="border-b text-white text-center text-xs sm:text-xs p-2 font-bold"> {item.total_alpa} </td>
+                        <td className="border-b text-white text-center text-xs sm:text-xs p-2 font-bold"> {item.total_terlambat} </td>
+                        <td className="border-b text-white text-center text-xs sm:text-xs p-2 font-bold"> {item.nomor_wali && (
                           <a href={`(link unavailable){item.nomor_wali.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-white hover:text-green-500" >
                             <FaWhatsapp className="text-green-500 text-xl" />
                           </a>
