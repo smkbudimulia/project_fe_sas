@@ -25,7 +25,7 @@ const LoginForm = () => {
       if (response.status === 200) {
         // Menyimpan token ke dalam cookie dengan waktu kadaluarsa 5 menit
         const expireDate = new Date();
-        expireDate.setTime(expireDate.getTime() + (30 * 60 * 1000)); // 5 menit dalam milidetik
+        expireDate.setTime(expireDate.getTime() + (60 * 60 * 1000)); // 5 menit dalam milidetik
         Cookies.set('token', response.data.token, { expires: expireDate });
         Cookies.set('nama_admin', response.data.data.nama_admin, { expires: expireDate });
         Cookies.set('status', response.data.data.status, { expires: expireDate });

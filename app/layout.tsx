@@ -4,6 +4,7 @@ import "./globals.css";
 import Footer from './components/footer/page';
 import Navbar from './components/navbar/page';
 import Sidebar from './components/sidebar/page';
+import ClientTokenHandler from './components/ClientTokenHandler';
 
 const poppins = Poppins({ weight: ["300", "400", "400"], subsets: ["latin"] });
 
@@ -36,6 +37,7 @@ export default function RootLayout({
     <html lang="en">
 
       <body className={poppins.className}>
+      <ClientTokenHandler />
       {children}
      
         </body>
