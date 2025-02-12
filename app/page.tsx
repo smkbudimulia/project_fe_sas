@@ -986,7 +986,27 @@ const Page = () => {
     } 
 };
 
+const [namaInstansi, setNamaInstansi] = useState<string>("");
+useEffect(() => {
+  const getInstansi = async () => {
+    try {
+      // Mengambil data instansi
+      const response = await axios.get(`${baseUrl}/setting/all-instansi`);
+      const data = response.data.data;
 
+      // Temukan instansi yang kamu butuhkan (misalnya berdasarkan kondisi tertentu)
+      const instansi = data.find((instansi: any) => instansi.nama_instansi);
+
+      if (instansi) {
+        setNamaInstansi(instansi.nama_instansi); // Simpan nama instansi
+      }
+    } catch (error) {
+      console.error("Error fetching instansi data:", error);
+    }
+  };
+
+  getInstansi();
+}, []); // Empty array supaya hanya dijalankan sekali saat komponen dimuat
   return (
     <>
       <div>
@@ -998,7 +1018,7 @@ const Page = () => {
         className="text-center mt-14 text-7xl font-bold"
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
-        SMK BUDI MULIA PAKISAJI 
+        {namaInstansi}
       </div>
 
       {/* Column 1: Input */}

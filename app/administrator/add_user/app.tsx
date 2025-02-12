@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Pw from "./pass";
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import bcrypt from "bcryptjs"; // Pastikan bcryptjs sudah terinstal
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
@@ -16,6 +16,8 @@ import {
 import DataTable from "../../components/dataTabel";
 import useUserInfo from "@/app/components/useUserInfo";
 import Swal from "sweetalert2";
+
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface Kelas {
   id: number;
@@ -56,13 +58,20 @@ export default function DataSiswa() {
     status: "aktif", // Default status
   });
 
+   // Fungsi untuk mendapatkan data
+   const fetchAdmins = async (): Promise<AxiosResponse<{ data: Admin[] }>> => {
+    const response = await axios.get(`${baseUrl}/admin/all-admin`);
+    return response; // respons ini memiliki properti data
+  };
+  //stet untuk fecth siswa
   useEffect(() => {
-    const loadAdmins = async () => {
-      const response = await fetchAdmins(); // response sekarang sudah berupa array Admin[]
-      console.log("API response:", response); // Debugging tambahan
-      setAdmins(response); // Set langsung ke admins karena response sudah berupa Admin[]
+    const loadAdmin = async () => {
+      const response = await fetchAdmins();
+      // console.log('API siswa:', response); // Debugging tambahan
+      const data = response.data;
+      setAdmins(data.data);
     };
-    loadAdmins();
+    loadAdmin();
   }, []);
   
   const adminColumns = [] = [
@@ -74,7 +83,19 @@ export default function DataSiswa() {
     { header: "Email", accessor: "email" as keyof Admin },
     // { header: 'Username', accessor: 'username' as keyof Admin },
     // { header: "Password", accessor: "pass" as keyof Admin },
-    { header: "Foto", accessor: "foto" as keyof Admin },
+    { 
+      header: "Foto", 
+      accessor: "foto" as keyof Admin, 
+      Cell: ({ row }: { row: Admin }) => {
+        const fotoSrc = typeof row.foto === "string" 
+          ? row.foto 
+          : row.foto instanceof File 
+          ? URL.createObjectURL(row.foto) 
+          : "/default.jpg"; // Gambar default jika tidak ada foto
+    
+        return <img src={fotoSrc} alt="Admin Foto" className="w-12 h-12 rounded-full object-cover" />;
+      }
+    },
     { header: "Status", accessor: "status" as keyof Admin },
     {
       header: "Aksi",
@@ -203,7 +224,6 @@ export default function DataSiswa() {
       !formData.email ||
       !formData.username ||
       !formData.pass ||
-      !formData.foto ||
       !formData.status
     ) {
       toast.error("Data tidak boleh kosong");
@@ -218,8 +238,9 @@ export default function DataSiswa() {
       } else {
         toast.success("Admin berhasil ditambahkan!");
         // Menambahkan admin yang baru ke dalam state admins agar langsung muncul di tabel
-        setAdmins((prevAdmins) => [...prevAdmins, response]);
+        setAdmins((prevAdmins) => Array.isArray(prevAdmins) ? [...prevAdmins, response] : [response]);
 
+      
         // Reset form setelah berhasil
         setFormData({
           id_admin: "",

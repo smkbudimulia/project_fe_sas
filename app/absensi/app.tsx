@@ -605,26 +605,26 @@ const [kelas, setKelas] = useState([]);
 
    // State untuk menyimpan hari libur
    const [liburDays, setLiburDays] = useState<string[]>([]);
-   useEffect(() => {
+   const [tanggalLibur, setTanggalLibur] = useState<string[]>([]); // Tambahkan state untuk tanggal libur
+
+  useEffect(() => {
     const fetchLiburDays = async () => {
       try {
         const response = await fetch(`${baseUrl}/setting/all-setting`);
         const data = await response.json();
-  
+
         if (data.Status === 200) {
           setLiburDays(data.liburDays as string[]); // Simpan daftar hari libur
+          setTanggalLibur(data.tanggalLibur as string[]); // Simpan daftar tanggal libur
         }
       } catch (error) {
         console.error("Error fetching liburDays:", error);
       }
     };
-  
+
     fetchLiburDays();
   }, []);
-  // Cetak nilai terbaru setelah `liburDays` diperbarui
-useEffect(() => {
-  console.log("ini libur", liburDays);
-}, [liburDays]); // Efek ini akan berjalan setiap kali `liburDays` berubah
+  
   return (
     <div className="rounded-lg max-w-full p-3 bg-slate-100">
       <div className="pt-7 ml-7">
@@ -800,9 +800,20 @@ useEffect(() => {
   );
 })} */}
 {datesArray1.map((date) => {
-    const isLibur = liburDays.includes(
-        new Date(date).toLocaleDateString("id-ID", { weekday: "long" })
+    //Cek apakah hari tersebut adalah libur berdasarkan hari
+    const isLiburByDay = liburDays.includes(
+      new Date(date).toLocaleDateString("id-ID", {
+        weekday: "long",
+      })
     );
+
+    // Cek apakah tanggal tersebut adalah libur berdasarkan tanggal
+    const isLiburByDate = tanggalLibur.some(liburDate =>
+      new Date(date).toLocaleDateString("id-ID") === new Date(liburDate).toLocaleDateString("id-ID")
+    );
+    
+
+    const isLibur = isLiburByDay || isLiburByDate; // Gabungkan keduanya
 
     const absensi = item.absensi[date] || {}; // Ambil data absensi berdasarkan tanggal
     const hadir = absensi.keterangan; // Status hadir

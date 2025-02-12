@@ -151,10 +151,10 @@ const AdminPage = () => {
     { header: "Kelas", accessor: "kelas" },
     { header: "Jumlah Siswa", accessor: "total_siswa" },
     { header: "H", accessor: "total_hadir_perkelas" },
-    { header: "S", accessor: "s" },
-    { header: "I", accessor: "i" },
-    { header: "A", accessor: "a" },
-    { header: "T", accessor: "t" },
+    { header: "S", accessor: "total_sakit_perkelas" },
+    { header: "I", accessor: "total_izin_perkelas" },
+    { header: "A", accessor: "total_alpa_perkelas" },
+    { header: "T", accessor: "total_terlambat_perkelas" },
     { header: "Walas", accessor: "walas" },
   ];
 
