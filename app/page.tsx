@@ -241,6 +241,8 @@ const Page = () => {
       const data2 = response2.data.data;
       const siswa = data2.find((siswa: any) => siswa.id_siswa === id_siswa);
         toast.success(`${siswa.nama_siswa} Alpa `);
+        togglePopupAlpa(); 
+        setClickedRowIndex(null);
       // console.log(response.data);
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -377,6 +379,8 @@ const Page = () => {
       const data2 = response2.data.data;
       const siswa = data2.find((siswa: any) => siswa.id_siswa === id_siswa);
         toast.success(`${siswa.nama_siswa} Sakit tidak masuk `);
+        togglePopupSakit(); 
+        setClickedRowIndex(null);
 
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -413,27 +417,6 @@ const Page = () => {
   // State untuk menyimpan data keterangan lain yang dipilih
   const [selectedKeteranganLain, setSelectedKeteranganLain] = useState<Item[]>([]);
 
-  // Data contoh untuk item keterangan lain bisa diganti secara dinamis
-  const keteranganItems = [
-    { name: "Aldi", kelas: "1A" },
-    { name: "Budi", kelas: "1B" },
-    { name: "Citra", kelas: "1C" },
-    { name: "Diana", kelas: "1A" },
-    { name: "Eko", kelas: "1B" },
-    { name: "Fani", kelas: "1C" },
-    { name: "Gita", kelas: "2A" },
-    { name: "Hendra", kelas: "2B" },
-    { name: "Ika", kelas: "2C" },
-    { name: "Joko", kelas: "2A" },
-    { name: "Kiki", kelas: "2B" },
-    { name: "Lina", kelas: "2C" },
-    { name: "Maya", kelas: "3A" },
-    { name: "Nia", kelas: "3B" },
-    { name: "Omar", kelas: "3C" },
-    { name: "Maya", kelas: "4A" },
-    { name: "Nia", kelas: "4B" },
-    { name: "Omar", kelas: "4C" },
-  ];
 
   const [siswaKeteranganLainData, setSiswaKeteranganLainData] = useState<
     Siswa[]
@@ -527,6 +510,8 @@ const Page = () => {
       const data2 = response2.data.data;
       const siswa = data2.find((siswa: any) => siswa.id_siswa === id_siswa);
         toast.success(`${siswa.nama_siswa} Izin tidak masuk `);
+        togglePopupKeteranganLain(); 
+        setClickedRowIndex(null);
       // console.log(response.data);
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
