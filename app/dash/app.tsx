@@ -41,6 +41,7 @@ interface Kehadiran {
   total_alpa: number;
   total_sakit: number;
   total_izin: number;
+  total_pulang: number;
 }
 
 const AdminPage = () => {
@@ -116,7 +117,8 @@ const AdminPage = () => {
     total_terlambat: 0,
     total_alpa: 0,
     total_sakit: 0,
-    total_izin: 0
+    total_izin: 0,
+    total_pulang: 0
   });
   const [totalPerkategori, setTotalPerkategori] = useState(0);
   const [totalSemuaRombel, setTotalSemuaRombel] = useState(0);
@@ -235,6 +237,7 @@ const AdminPage = () => {
               <th>Total Sakit</th>
               <th>Total Izin</th>
               <th>Total Semua Kategori</th>
+              <th>Total Pulang</th>
             </tr>
           </thead>
           <tbody>
@@ -245,6 +248,7 @@ const AdminPage = () => {
               <td className="pt-4">{totalSemuaKehadiran.total_sakit}</td>
               <td className="pt-4">{totalSemuaKehadiran.total_izin}</td>
               <td className="pt-4">{totalPerkategori}</td>
+              <td className="pt-4">{totalSemuaKehadiran.total_izin}</td>
             </tr>
           </tbody>
         </table>

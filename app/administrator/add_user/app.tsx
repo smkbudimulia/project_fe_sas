@@ -59,20 +59,19 @@ export default function DataSiswa() {
   });
 
    // Fungsi untuk mendapatkan data
-   const fetchAdmins = async (): Promise<AxiosResponse<{ data: Admin[] }>> => {
-    const response = await axios.get(`${baseUrl}/admin/all-admin`);
-    return response; // respons ini memiliki properti data
+   const fetchAdmins = async (): Promise<Admin[]> => {
+    const response = await axios.get<{ data: Admin[] }>(`${baseUrl}/admin/all-admin`);
+    return response.data.data; // Mengembalikan hanya array Admin[]
   };
   //stet untuk fecth siswa
   useEffect(() => {
     const loadAdmin = async () => {
       const response = await fetchAdmins();
-      // console.log('API siswa:', response); // Debugging tambahan
-      const data = response.data;
-      setAdmins(data.data);
+      setAdmins(response); // Langsung gunakan response tanpa .data
     };
     loadAdmin();
   }, []);
+  
   
   const adminColumns = [] = [
     { header: "Id_admin", accessor: "id_admin" as keyof Admin },
@@ -237,8 +236,10 @@ export default function DataSiswa() {
         toast.error("Data sudah ada!");
       } else {
         toast.success("Admin berhasil ditambahkan!");
-        // Menambahkan admin yang baru ke dalam state admins agar langsung muncul di tabel
-        setAdmins((prevAdmins) => Array.isArray(prevAdmins) ? [...prevAdmins, response] : [response]);
+
+       // Ambil data terbaru dari server untuk memastikan tabel diperbarui
+       const updatedAdmins = await fetchAdmins();
+       setAdmins(updatedAdmins);
 
       
         // Reset form setelah berhasil
@@ -579,6 +580,7 @@ export default function DataSiswa() {
                 <option value="">Pilih Status</option>
                 <option value="Administrator">Administrator</option>
                 <option value="Admin">Admin</option>
+                <option value="Guru">Guru</option>
               </select>
               <div className="mt-4 flex justify-end items-center">
                 {/* Tombol Simpan */}
@@ -766,6 +768,7 @@ export default function DataSiswa() {
                             <option value="">Pilih Status</option>
                             <option value="Administrator">Administrator</option>
                             <option value="Admin">Admin</option>
+                            <option value="Guru">Guru</option>
                           </select>
 
                           <button

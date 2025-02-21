@@ -1357,7 +1357,6 @@ export default function DataSiswa() {
                       onChange={handleChange}
                       className="mt-1 p-2 border rounded-md w-full"
                     />
-                              
                   </div>
 
                   {/* Sembunyikan bagian lainnya jika tidak diperlukan */}
@@ -1602,6 +1601,22 @@ export default function DataSiswa() {
                             value={editData ? editData.pass : ""}
                             onChange={handleEditChange}
                             placeholder="Password (Opsional)"
+                            className="mt-1 p-2 border rounded-md w-full"
+                          />
+                          <input
+                            type="text"
+                            name="nama_wali"
+                            value={editData ? editData.nama_wali : ""}
+                            onChange={handleEditChange}
+                            placeholder="Nama Wali"
+                            className="mt-1 p-2 border rounded-md w-full"
+                          />
+                          <input
+                            type="text"
+                            name="nomor_wali"
+                            value={editData ? editData.nomor_wali : ""}
+                            onChange={handleEditChange}
+                            placeholder="Nomor Wali"
                             className="mt-1 p-2 border rounded-md w-full"
                           />
                           <input

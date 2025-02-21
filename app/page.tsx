@@ -1017,8 +1017,8 @@ useEffect(() => {
           </span>
         </div>
         {isDropdownVisible && (
-          <div className="lg:absolute lg:w-1/3 md:w-1/4 p-4 lg:p-6 top-full mt-2">
-            <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border">
+          <div className="lg:absolute lg:w-1/3 lg:p-6 top-full mt-2">
+            <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border md:mx-3 md:-mb-36 ">
               <div className="flex flex-col items-center justify-center">
                 <h1 className="font-bold text-xl text-center lg:text-2xl">
                   Tombol untuk siswa

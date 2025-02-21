@@ -45,11 +45,11 @@ const Navbar: React.FC<NavbarProps> = (props) => {
     // const toggleSidebar = () => {
     //   setIsOpen((prev) => !prev); // Toggle nilai isOpen antara true/false
     // };
-    const toggleSidebar = () => {
-      setIsOpen(!isOpen);
-    };
+    const toggleSidebar = () => setIsOpen((prev) => !prev);
 
-  const [isToggleSidebar, setToggleSidebar] = useState(false);
+    const toggleMenu = (menu: string) => {
+      setActiveMenu((prevMenu) => (prevMenu === menu ? null : menu));
+    };
   // const [isOpen, setIsOpen] = useState(false);
   const [isClick, setisClick] = useState(false);
   const toggleNavbar = () => {
@@ -277,6 +277,8 @@ const Navbar: React.FC<NavbarProps> = (props) => {
                 </div>
               </Link>
             </li>
+            {status === "administrator" && (
+              <>
             <li className="mb-2">
               <Link href="/naik_kelas">
                 <div
@@ -501,6 +503,8 @@ const Navbar: React.FC<NavbarProps> = (props) => {
                 </div>
               </Link>
             </li>
+            </>
+            )}
             <li className="mb-2">
               <Link href={""}>
                 <div

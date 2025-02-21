@@ -26,11 +26,16 @@ const LoginForm = () => {
         // Menyimpan token ke dalam cookie dengan waktu kadaluarsa 5 menit
         const expireDate = new Date();
         expireDate.setTime(expireDate.getTime() + (60 * 60 * 1000)); // 5 menit dalam milidetik
-        Cookies.set('token', response.data.token, { expires: expireDate });
-        Cookies.set('nama_admin', response.data.data.nama_admin, { expires: expireDate });
-        Cookies.set('status', response.data.data.status, { expires: expireDate });
-        Cookies.set('id_admin', response.data.data.id_admin, { expires: expireDate });
-        window.location.href = '../';
+        Cookies.set('token', response.data.token, { expires: expireDate});
+        Cookies.set('nama_admin', response.data.data.nama_admin, { expires: expireDate});
+        Cookies.set('status', response.data.data.status, { expires: expireDate});
+        Cookies.set('id_admin', response.data.data.id_admin, { expires: expireDate});
+        // **Cek status dan redirect sesuai peran**
+        if (response.data.data.status === "Guru") {
+          window.location.href = '/dash';  // Jika status Guru, langsung ke dashboard
+        } else {
+          window.location.href = '../';  // Jika bukan Guru, kembali ke halaman utama
+        }
       }
     } catch (error: unknown) {
       if (error instanceof Error && 'response' in error) {
