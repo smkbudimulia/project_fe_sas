@@ -41,7 +41,7 @@ interface Kehadiran {
   total_alpa: number;
   total_sakit: number;
   total_izin: number;
-  total_pulang: number;
+  total_pulang: number; // Tambahkan total pulang
 }
 
 const AdminPage = () => {
@@ -118,7 +118,7 @@ const AdminPage = () => {
     total_alpa: 0,
     total_sakit: 0,
     total_izin: 0,
-    total_pulang: 0
+    total_pulang: 0,
   });
   const [totalPerkategori, setTotalPerkategori] = useState(0);
   const [totalSemuaRombel, setTotalSemuaRombel] = useState(0);
@@ -136,6 +136,7 @@ const AdminPage = () => {
       setTotalPerkategori(response.data.totalSemuaKategori);
       setTotalSemuaRombel(response.data.totalSemuaRombel);
       setTotalSemuaGuru(response.data.totalSemuaGuru);
+
 
       console.log("total siswa", response.data); // Debugging
     } catch (error) {
@@ -227,32 +228,36 @@ const AdminPage = () => {
           </div>
         </div>
       </div>
-      <div>
-        <table className="mt-5 w-full">
-          <thead>
-            <tr>
-              <th>Total Hadir</th>
-              <th>Terlambat</th>
-              <th>Alpa</th>
-              <th>Sakit</th>
-              <th>Izin</th>
-              <th>Total Semua Kategori</th>
-              <th>Total Pulang</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="text-center">
-              <td className="pt-4">{totalSemuaKehadiran.total_hadir}</td>
-              <td className="pt-4">{totalSemuaKehadiran.total_terlambat}</td>
-              <td className="pt-4">{totalSemuaKehadiran.total_alpa}</td>
-              <td className="pt-4">{totalSemuaKehadiran.total_sakit}</td>
-              <td className="pt-4">{totalSemuaKehadiran.total_izin}</td>
-              <td className="pt-4">{totalPerkategori}</td>
-              <td className="pt-4">{totalSemuaKehadiran.total_pulang}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <div className="mt-5 px-6 py-4 rounded-lg ">
+  <div className="overflow-x-auto max-w-full">
+    <table className="w-full table-auto  ">
+      <thead>
+        <tr className="">
+          <th className="px-4 py-2 text-slate-800 ">Total Hadir</th>
+          <th className="px-4 py-2 text-slate-800 ">Terlambat</th>
+          <th className="px-4 py-2 text-slate-800 ">Alpa</th>
+          <th className="px-4 py-2 text-slate-800 ">Sakit</th>
+          <th className="px-4 py-2 text-slate-800 ">Izin</th>
+          <th className="px-4 py-2 text-slate-800 ">Total Semua Kategori</th>
+          <th className="px-4 py-2 text-slate-800">Total Pulang</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr className="text-center text-gray-800 bg-white">
+          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_hadir}</td>
+          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_terlambat}</td>
+          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_alpa}</td>
+          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_sakit}</td>
+          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_izin}</td>
+          <td className="px-4 py-2  font-semibold">{totalPerkategori}</td>
+          <td className="px-4 py-2">{totalSemuaKehadiran.total_pulang}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
       <div className="flex flex-col lg:flex-row">
         {/* Column 1: Input */}
         <div className="w-full lg:w-1/2 p-4 lg:p-6">
