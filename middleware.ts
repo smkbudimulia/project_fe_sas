@@ -9,11 +9,11 @@ export function middleware(req: NextRequest) {
   const status = req.cookies.get("status")?.value;
   console.log("Token:", token, "Status:", status);
 
-  // Jika token tidak ada atau sudah kedaluwarsa, redirect ke login
-  if (!token) {
-    console.log("Token expired or not found, redirecting to login.");
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
+  // // Jika token tidak ada atau sudah kedaluwarsa, redirect ke login
+  // if (!token) {
+  //   console.log("Token expired or not found, redirecting to login.");
+  //   return NextResponse.redirect(new URL("/login", req.url));
+  // }
 
   // Jika pengguna mencoba mengakses halaman login tapi sudah memiliki token, redirect ke halaman tujuan
   if (req.nextUrl.pathname === "/login" && token) {
@@ -21,22 +21,22 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/dash", req.url));
   }
 
-  // // Jika tidak ada token dan pengguna mencoba mengakses halaman yang dilindungi
-  // if (!token) {
-  //   const protectedRoutes = [
-  //     "/dash",
-  //     "/profile",
-  //     "/absensi",
-  //     "/naik_kelas",
-  //     "/administrator",
-  //     "/master_data",
-  //     "/setting"
-  //   ];
-  //   if (protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))) {
-  //     console.log("No token found, redirecting to login.");
-  //     return NextResponse.redirect(new URL("/login", req.url));
-  //   }
-  // }
+  // Jika tidak ada token dan pengguna mencoba mengakses halaman yang dilindungi
+  if (!token) {
+    const protectedRoutes = [
+      "/dash",
+      "/profile",
+      "/absensi",
+      "/naik_kelas",
+      "/administrator",
+      "/master_data",
+      "/setting"
+    ];
+    if (protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))) {
+      console.log("No token found, redirecting to login.");
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
 
   // Batasi akses berdasarkan status
   if (status === "Guru") {
