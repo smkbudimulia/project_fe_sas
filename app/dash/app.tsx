@@ -248,7 +248,7 @@ const AdminPage = () => {
               <td className="pt-4">{totalSemuaKehadiran.total_sakit}</td>
               <td className="pt-4">{totalSemuaKehadiran.total_izin}</td>
               <td className="pt-4">{totalPerkategori}</td>
-              <td className="pt-4">{totalSemuaKehadiran.total_izin}</td>
+              <td className="pt-4">{totalSemuaKehadiran.total_pulang}</td>
             </tr>
           </tbody>
         </table>
