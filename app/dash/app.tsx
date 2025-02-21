@@ -232,10 +232,10 @@ const AdminPage = () => {
           <thead>
             <tr>
               <th>Total Hadir</th>
-              <th>Total Terlambat</th>
-              <th>Total Alpa</th>
-              <th>Total Sakit</th>
-              <th>Total Izin</th>
+              <th>Terlambat</th>
+              <th>Alpa</th>
+              <th>Sakit</th>
+              <th>Izin</th>
               <th>Total Semua Kategori</th>
               <th>Total Pulang</th>
             </tr>
