@@ -9,33 +9,43 @@ export function middleware(req: NextRequest) {
   const status = req.cookies.get("status")?.value;
   console.log("Token:", token, "Status:", status);
 
+  // Jika token tidak ada atau sudah kedaluwarsa, redirect ke login
+  if (!token) {
+    console.log("Token expired or not found, redirecting to login.");
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
   // Jika pengguna mencoba mengakses halaman login tapi sudah memiliki token, redirect ke halaman tujuan
   if (req.nextUrl.pathname === "/login" && token) {
     console.log("Pengguna sudah memiliki token, dialihkan ke dasbor.");
     return NextResponse.redirect(new URL("/dash", req.url));
   }
 
-  // Jika tidak ada token dan pengguna mencoba mengakses halaman yang dilindungi
-  if (!token) {
-    const protectedRoutes = [
-      "/dash",
-      "/profile",
-      "/absensi",
-      "/naik_kelas",
-      "/administrator",
-      "/master_data",
-      "/setting"
-    ];
-    if (protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))) {
-      console.log("No token found, redirecting to login.");
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-  }
+  // // Jika tidak ada token dan pengguna mencoba mengakses halaman yang dilindungi
+  // if (!token) {
+  //   const protectedRoutes = [
+  //     "/dash",
+  //     "/profile",
+  //     "/absensi",
+  //     "/naik_kelas",
+  //     "/administrator",
+  //     "/master_data",
+  //     "/setting"
+  //   ];
+  //   if (protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))) {
+  //     console.log("No token found, redirecting to login.");
+  //     return NextResponse.redirect(new URL("/login", req.url));
+  //   }
+  // }
 
   // Batasi akses berdasarkan status
   if (status === "Guru") {
     const allowedRoutesForGuru = ["/dash", "/absensi"];
-    if (!allowedRoutesForGuru.some(route => req.nextUrl.pathname.startsWith(route))) {
+    if (
+      !allowedRoutesForGuru.some((route) =>
+        req.nextUrl.pathname.startsWith(route)
+      )
+    ) {
       console.log("Akses ditolak untuk guru ke halaman:", req.nextUrl.pathname);
       return NextResponse.redirect(new URL("/dash", req.url));
     }
@@ -43,7 +53,6 @@ export function middleware(req: NextRequest) {
 
   return NextResponse.next();
 }
-
 
 export const config = {
   matcher: [
@@ -54,7 +63,7 @@ export const config = {
     "/naik_kelas/:path*",
     "/administrator/:path*",
     "/master_data/:path*",
-    "/setting/:path*"
+    "/setting/:path*",
   ],
 };
 // import { NextResponse } from "next/server";
