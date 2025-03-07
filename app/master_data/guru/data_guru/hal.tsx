@@ -878,7 +878,7 @@ export default function DataGuru() {
   };
   const validSearchTerm = searchTerm ? searchTerm.toLowerCase() : "";
   // Memfilter data berdasarkan searchTerm
-  const filteredData = guru.filter((item) => {
+  const filteredData = (guru || []).filter((item) => {
     // Asumsikan 'kelas' memiliki properti 'kelas' untuk dicari
     return (
       item?.nip?.toLowerCase().includes(validSearchTerm) ||

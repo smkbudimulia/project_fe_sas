@@ -24,7 +24,7 @@ export default function NaikKelas() {
   const fetchKelasSiswaTotal = async () => {
     try {
       const response = await axios.get(
-        `${baseUrl}/joinNonMaster/nama-siswa-kelas`
+        `${baseUrl}/joinNonMaster/nama-siswa`
       );
       setKelas(response.data.data);
       console.log("ini siswa", response.data);

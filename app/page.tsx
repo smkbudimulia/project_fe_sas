@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import moment from "moment";
 import { useRouter } from "next/navigation";
 import DigitalClock from "./components/digitalclock";
+import Marquee from "react-fast-marquee";
 import {
   addSiswa,
   fetchSiswa,
@@ -32,6 +33,24 @@ type Item = {
   kelas: string;
   name: string;
 };
+
+interface Set {
+  jam_masuk: string;
+  jam_pulang: string;
+  jam_terlambat: string;
+  id_setting: string;
+  hari: string;
+}
+
+interface SplitSettingItem {
+  hari: string;
+  jamMasukAwal: string;
+  jamMasukAkhir: string;
+  jamTerlambatAwal: string;
+  jamTerlambatAkhir: string;
+  jamPulangAwal: string;
+  jamPulangAkhir: string;
+}
 
 interface Sakit {
   id: number;
@@ -992,8 +1011,43 @@ useEffect(() => {
 
   getInstansi();
 }, []); // Empty array supaya hanya dijalankan sekali saat komponen dimuat
+
+const [setting, setSetting] = useState<SplitSettingItem[]>([]);
+const today = new Date().toLocaleDateString("id-ID", { weekday: "long" });
+
+const fetchSetting = async () => {
+  try {
+    const response = await axios.get(`${baseUrl}/setting/all-setting`);
+    const filteredData = response.data.data
+      .filter((item: Set) => item.hari === today)
+      .map((item: Set) => {
+        const [jamMasukAwal, jamMasukAkhir] = item.jam_masuk.split(",") || ["-", "-"];
+        const [jamTerlambatAwal, jamTerlambatAkhir] = item.jam_terlambat.split(",") || ["-", "-"];
+        const [jamPulangAwal, jamPulangAkhir] = item.jam_pulang.split(",") || ["-", "-"];
+
+        return {
+          hari: item.hari,
+          jamMasukAwal: jamMasukAwal.trim(),
+          jamMasukAkhir: jamMasukAkhir.trim(),
+          jamTerlambatAwal: jamTerlambatAwal.trim(),
+          jamTerlambatAkhir: jamTerlambatAkhir.trim(),
+          jamPulangAwal: jamPulangAwal.trim(),
+          jamPulangAkhir: jamPulangAkhir.trim(),
+        };
+      });
+
+    setSetting(filteredData);
+  } catch (error) {
+    console.error("Fetch error:", error);
+  }
+};
+
+useEffect(() => {
+  fetchSetting();
+}, []);
+
   return (
-    <>
+    <div className="bg-gradient-to-b from-teal-100 to-teal-300 lg:min-h-screen">
       <div>
         <Navbar />
         <ToastContainer className="mt-14" />
@@ -1626,21 +1680,54 @@ useEffect(() => {
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row items-stretch justify-between p-4">
+      <div className="flex flex-col lg:flex-row items-stretch justify-between p-4 ">
         {/* Column 1: Digital Clock */}
         <div
-          className={`flex items-center justify-center p-4 w-full lg:w-auto h-full ${
+          className={`grid grid-cols-1 items-center justify-self-center p-4 w-full lg:w-[40%] h-full  ${
             isDropdownVisible ? "md:mt-40 lg:mt-60" : "md:mt-0 lg:mt-0"
           }`}
         >
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center h-full lg:ml-5">
+          <div className="bg-white rounded-lg">
+             <div className="rounded-lg shadow-lg p-6 text-center h-full ">
             <DigitalClock /> {/* Menambahkan ukuran font */}
+          </div>
+          </div>
+          <div className="grid grid-cols-1 ">
+          {setting.length > 0 ? (
+            <table className="w-full border-white mt-4">
+              <thead>
+                <tr className="bg-white rounded-lg">
+                  <th className="border-white p-2 rounded-l-lg font-bold">Jam Masuk </th>
+                  <th className="border-white p-2">Jam Terlambat </th>
+                  <th className="border-white p-2 rounded-r-lg">Jam Pulang </th>
+                </tr>
+              </thead>
+              <tbody>
+                {setting.map((item, index) => (
+                  <tr key={index} className="text-center">
+                    <td className="border-gray-300 p-2 font-bold text-xl">{item.jamMasukAwal} - {item.jamMasukAkhir}</td>
+                    <td className="border-gray-300 p-2 font-bold text-xl">{item.jamTerlambatAwal} - {item.jamTerlambatAkhir}</td>
+                    <td className="border-gray-300 p-2 font-bold text-xl">{item.jamPulangAwal} - {item.jamPulangAkhir}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-center mt-4">Tidak ada jadwal untuk hari ini.</p>
+          )}
+            <div className="lg:mt-48 lg:w-auto">
+            <Marquee gradient={false} speed={100} loop={0}>
+        <span className="text-8xl text-teal-900 mx-2 " style={{ fontFamily: 'Linebeam, sans-serif' }}>
+          TEPAT WAKTU DAN DISIPLIN! ~ 
+        </span>
+      </Marquee>
+            </div>
           </div>
         </div>
 
         {/* Column 2: Table */}
         <div className="w-full lg:w-2/3 p-4 h-full">
-          <div className="bg-white p-3 rounded shadow-md h-full">
+          <div className="bg-white p-3 rounded-lg shadow-md h-full">
             <div className="bg-slate-600 p-2 rounded-lg h-full">
               <div className="p-2">
                 <h2 className="text-sm pt-3 sm:text-2xl text-white font-bold">
@@ -1717,7 +1804,7 @@ useEffect(() => {
       </div>
 
       {/* scan barcode */}
-      <div className="p-4 text-white">
+      <div className="p-4 text-teal-400">
         {/* <input
           ref={barcodeInputRef}
           type="text"
@@ -1734,7 +1821,7 @@ useEffect(() => {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder=""
-          className="pointer-events-auto border-none outline-none"
+          className="pointer-events-auto border-none outline-none bg-transparent"
         />
       </div>
       {/* <div>
@@ -1751,7 +1838,7 @@ useEffect(() => {
             </form>
             <p>{message}</p>
         </div> */}
-    </>
+    </div>
   );
 };
 export default Page;

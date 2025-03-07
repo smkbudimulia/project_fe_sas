@@ -10,6 +10,7 @@ const config: Config = {
     extend: {
       fontFamily:{
         lato: ["Lato", "sans-serif"],
+        linebeam: ['Linebeam', 'sans-serif'],
       },
       colors:{
         white: "#fff",
