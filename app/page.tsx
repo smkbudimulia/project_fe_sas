@@ -1718,7 +1718,7 @@ useEffect(() => {
             <div className="lg:mt-48 lg:w-auto">
             <Marquee gradient={false} speed={100} loop={0}>
         <span className="text-8xl text-teal-900 mx-2 " style={{ fontFamily: 'Linebeam, sans-serif' }}>
-          TEPAT WAKTU DAN DISIPLIN! ~ 
+          SUKSES DIMULAI DARI TEPAT WAKTU DAN DISIPLIN! ~ 
         </span>
       </Marquee>
             </div>
