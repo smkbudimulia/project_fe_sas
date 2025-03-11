@@ -1052,14 +1052,7 @@ useEffect(() => {
         <Navbar />
         <ToastContainer className="mt-14" />
       </div>
-
-      <div
-        className="text-center mt-14 text-7xl font-bold"
-        style={{ fontFamily: "Poppins, sans-serif" }}
-      >
-        {namaInstansi}
-      </div>
-
+      
       {/* scan barcode */}
       <div className="p-4 text-teal-400">
         {/* <input
@@ -1081,6 +1074,13 @@ useEffect(() => {
           className="pointer-events-auto border-none outline-none bg-transparent"
         />
       </div>
+      <div
+        className="text-center  text-7xl font-bold"
+        style={{ fontFamily: "Poppins, sans-serif" }}
+      >
+        {namaInstansi}
+      </div>
+
 
       {/* Column 1: Input */}
       <div className="relative ">
@@ -1738,7 +1738,7 @@ useEffect(() => {
             <p className="text-center mt-4">Tidak ada jadwal untuk hari ini.</p>
           )}
             <div className="lg:mt-48 lg:w-auto">
-            <Marquee gradient={false} speed={120} loop={0}>
+            <Marquee gradient={false} speed={130} loop={0}>
         <span className="text-8xl text-teal-900 mx-2 " style={{ fontFamily: 'Linebeam, sans-serif' }}>
           SUKSES DIMULAI DARI TEPAT WAKTU DAN DISIPLIN! ~ 
         </span>
