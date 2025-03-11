@@ -1054,7 +1054,7 @@ useEffect(() => {
       </div>
       
       {/* scan barcode */}
-      <div className="p-4 text-teal-400">
+      <div className="p-4 text-teal-100">
         {/* <input
           ref={barcodeInputRef}
           type="text"
