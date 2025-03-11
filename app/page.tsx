@@ -1060,6 +1060,28 @@ useEffect(() => {
         {namaInstansi}
       </div>
 
+      {/* scan barcode */}
+      <div className="p-4 text-teal-400">
+        {/* <input
+          ref={barcodeInputRef}
+          type="text"
+          value={barcode}
+          onChange={(e) => setBarcode(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Scan Barcode"
+          className="pointer-events-auto"
+        />         */}
+        <input
+          ref={barcodeInputRef}
+          type="text"
+          value={barcode}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder=""
+          className="pointer-events-auto border-none outline-none bg-transparent"
+        />
+      </div>
+
       {/* Column 1: Input */}
       <div className="relative ">
         <div className="text-white px-4 py-2 rounded flex items-center">
@@ -1716,7 +1738,7 @@ useEffect(() => {
             <p className="text-center mt-4">Tidak ada jadwal untuk hari ini.</p>
           )}
             <div className="lg:mt-48 lg:w-auto">
-            <Marquee gradient={false} speed={140} loop={0}>
+            <Marquee gradient={false} speed={120} loop={0}>
         <span className="text-8xl text-teal-900 mx-2 " style={{ fontFamily: 'Linebeam, sans-serif' }}>
           SUKSES DIMULAI DARI TEPAT WAKTU DAN DISIPLIN! ~ 
         </span>
@@ -1803,27 +1825,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* scan barcode */}
-      <div className="p-4 text-teal-400">
-        {/* <input
-          ref={barcodeInputRef}
-          type="text"
-          value={barcode}
-          onChange={(e) => setBarcode(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Scan Barcode"
-          className="pointer-events-auto"
-        />         */}
-        <input
-          ref={barcodeInputRef}
-          type="text"
-          value={barcode}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          placeholder=""
-          className="pointer-events-auto border-none outline-none bg-transparent"
-        />
-      </div>
+      
       {/* <div>
             <h3>Absensi Siswa</h3>
             <form onSubmit={handleSubmit1}>

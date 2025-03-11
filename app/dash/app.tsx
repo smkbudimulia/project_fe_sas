@@ -262,7 +262,7 @@ const AdminPage = () => {
         {/* Column 1: Input */}
         <div className="w-full lg:w-1/2 p-4 lg:p-6">
           <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border overflow-x-auto">
-            Tabel Absensi
+          <p className="lg:text-center lg:pb-3 font-semibold">Tabel Absensi </p> 
             <div className="bg-slate-600 p-2 rounded-lg h-full">
               <div className="overflow-x-auto h-full">
                 <DataTable columns={tableColumns} data={kelas} />
