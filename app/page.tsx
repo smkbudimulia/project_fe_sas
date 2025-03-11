@@ -1738,7 +1738,7 @@ useEffect(() => {
             <p className="text-center mt-4">Tidak ada jadwal untuk hari ini.</p>
           )}
             <div className="lg:mt-48 lg:w-auto">
-            <Marquee gradient={false} speed={130} loop={0}>
+            <Marquee gradient={false} speed={400} loop={0}>
         <span className="text-8xl text-teal-900 mx-2 " style={{ fontFamily: 'Linebeam, sans-serif' }}>
           SUKSES DIMULAI DARI TEPAT WAKTU DAN DISIPLIN! ~ 
         </span>
