@@ -32,6 +32,7 @@ type Item = {
   nama_siswa: string;
   kelas: string;
   name: string;
+  id_siswa: string;
 };
 
 interface Set {
@@ -108,6 +109,22 @@ const Page = () => {
   };
   useEffect(() => {
     fetchNamaKelas(); // Panggil fungsi fetch saat komponen di-mount
+  }, []);
+
+  const [siswaKetinggalan, setSiswaKetinggalan] = useState<Item[]>([]);
+  const fetchNama = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}/joinNonMaster/nama-siswa-ketinggalan`
+      );
+      setSiswaKetinggalan(response.data.data); // Menyimpan data ke state kelas
+      // console.log("total", response.data);
+    } catch (error) {
+      console.error("Fetch error:", error); // Menangani kesalahan
+    }
+  };
+  useEffect(() => {
+    fetchNama(); // Panggil fungsi fetch saat komponen di-mount
   }, []);
 
   const [kelas, setKelas] = useState<Kelas[]>([]);
@@ -220,7 +237,7 @@ const Page = () => {
   const [alpaCurrentPage, setAlpaCurrentPage] = useState(1);
 
   // Mengurutkan data siswa berdasarkan nama dari A-Z
-  const filteredSiswaAlpa = siswaData
+  const filteredSiswaAlpa = siswaKetinggalan
   .filter((row) =>
     row.nama_siswa.toLowerCase().includes(searchTermAlpa.toLowerCase())
   )
@@ -1046,6 +1063,42 @@ useEffect(() => {
   fetchSetting();
 }, []);
 
+const handleAbsen = async (jenis: "datang" | "pulang") => {
+  if (clickedRowIndex === null) {
+    toast.info("Silakan pilih siswa terlebih dahulu!");
+    return;
+  }
+
+  const selectedSiswa = filteredSiswaAlpa[(alpaCurrentPage - 1) * alpaItemsPerPage + clickedRowIndex];
+
+  try {
+    const response = await axios.post(`${baseUrl}/absensi/add-siswa-absensi-alpa`, {
+      id_siswa: selectedSiswa.id_siswa,
+      jenis, // "datang" atau "pulang"
+    });
+    toast.success(`${selectedSiswa.nama_siswa} berhasil absen ${jenis}!`);
+    if (response.data.message && response.data.message.includes("Sudah absen datang hari ini")) {
+      toast.warning("Siswa sudah absen datang hari ini!");
+      return;
+    }
+    if (response.data.message && response.data.message.includes("Belum jam pulang")) {
+      toast.warning("Belum jam pulang!");
+      return;
+    }
+    
+
+    // toast.success(Absensi ${jenis} berhasil!);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error response:", error.response?.data);
+      toast.error(error.response?.data.message || "Terjadi kesalahan!");
+    } else {
+      console.error("Error:", error);
+      toast.error("Terjadi kesalahan pada sistem!");
+    }
+  }
+};
+
   return (
     <div className="bg-gradient-to-b from-teal-100 to-teal-300 lg:min-h-screen">
       <div>
@@ -1437,56 +1490,118 @@ useEffect(() => {
                               />
                             </div>
                             <div className="mt-4">
-                              <table ref={tableRef} className="min-w-full">
-                                <thead>
-                                  <tr
-                                    className="bg-slate-500"
-                                    // onClick={() =>
-                                    //   handleKeteranganLainSelect(item)
-                                    // }
-                                  >
-                                    <th className="text-white text-left rounded-l-lg px-4 py-2">
-                                      Nama
-                                    </th>
-                                    <th className="text-white text-left rounded-r-lg px-4 py-2">
-                                      Kelas
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {filteredSiswaAlpa
-                                    .slice(
-                                      (alpaCurrentPage - 1) *
-                                        alpaItemsPerPage,
-                                      alpaCurrentPage *
-                                        alpaItemsPerPage
-                                    )
-                                    .map((row, index) => (
-                                      <tr
-                                        key={index}
-                                        className={`cursor-pointer ${
-                                          clickedRowIndex === index
-                                            ? "bg-gray-100"
-                                            : ""
-                                        }`} // Latar belakang berubah saat baris diklik
-                                        onClick={() =>
-                                          handleRowClick(row, index)
-                                        }
-                                      >
-                                        <td className="px-4 py-2 border-b">
-                                          {row.nama_siswa}
-                                        </td>
-                                        <td className="px-4 py-2 border-b">
-                                          {row.kelas}
-                                        </td>
-                                        {/* Tambahkan sel data lain jika ada kolom tambahan */}
-                                      </tr>
-                                    ))}
-                                </tbody>
-                              </table>
-                            </div>
+                                <table className="min-w-full">
+                                  <thead>
+                                    <tr className="bg-slate-500">
+                                      <th className="text-white text-left rounded-l-lg px-4 py-2">
+                                        Nama
+                                      </th>
+                                      <th className="text-white text-left rounded-r-lg px-4 py-2">
+                                        Kelas
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {filteredSiswaAlpa
+                                      .slice(
+                                        (alpaCurrentPage - 1) *
+                                          alpaItemsPerPage,
+                                        alpaCurrentPage * alpaItemsPerPage
+                                      )
+                                      .map((row, index) => (
+                                        <tr
+                                          key={index}
+                                          className={`cursor-pointer ${
+                                            clickedRowIndex === index
+                                              ? "bg-gray-100"
+                                              : ""
+                                          }`}
+                                          onClick={() =>
+                                            handleRowClick(row, index)
+                                          }
+                                        >
+                                          <td className="px-4 py-2 border-b">
+                                            {row.nama_siswa}
+                                          </td>
+                                          <td className="px-4 py-2 border-b">
+                                            {row.kelas}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                  </tbody>
+                                </table>
 
-                            <div className="flex justify-between mt-4">
+                                {/* Navigasi Halaman */}
+                                <div className="flex justify-between mt-4">
+                                  <button
+                                    className={`px-2 py-1 rounded ${
+                                      alpaTotalPages === 0 ||
+                                      alpaCurrentPage === 1
+                                        ? "bg-gray-300 cursor-not-allowed"
+                                        : "bg-teal-400 hover:bg-teal-500 text-white"
+                                    }`}
+                                    disabled={
+                                      alpaTotalPages === 0 ||
+                                      alpaCurrentPage === 1
+                                    }
+                                    onClick={() =>
+                                      setAlpaCurrentPage(alpaCurrentPage - 1)
+                                    }
+                                  >
+                                    Kembali
+                                  </button>
+                                  <span className="text-gray-900 px-2">
+                                    Page{" "}
+                                    {filteredSiswaAlpa.length > 0
+                                      ? alpaCurrentPage
+                                      : 0}{" "}
+                                    of {alpaTotalPages}
+                                  </span>
+                                  <button
+                                    className={`px-2 py-1 rounded ${
+                                      alpaTotalPages === 0 ||
+                                      alpaCurrentPage === alpaTotalPages
+                                        ? "bg-gray-300 cursor-not-allowed"
+                                        : "bg-teal-400 hover:bg-teal-500 text-white"
+                                    }`}
+                                    disabled={
+                                      alpaTotalPages === 0 ||
+                                      alpaCurrentPage === alpaTotalPages
+                                    }
+                                    onClick={() =>
+                                      setAlpaCurrentPage(alpaCurrentPage + 1)
+                                    }
+                                  >
+                                    Selanjutnya
+                                  </button>
+                                </div>
+
+                                {/* Tombol Aksi */}
+                                <div className="flex justify-between mt-4">
+                                  <button
+                                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                    onClick={togglePopupAlpa}
+                                  >
+                                    Close
+                                  </button>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                                      onClick={() => handleAbsen("datang")}
+                                    >
+                                      Absen Datang
+                                    </button>
+                                    <button
+                                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                      onClick={() => handleAbsen("pulang")}
+                                    >
+                                      Absen Pulang
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                            {/* <div className="flex justify-between mt-4">
                               <button
                                 className={`px-2 py-1 rounded ${
                                   alpaTotalPages === 0 ||
@@ -1548,7 +1663,7 @@ useEffect(() => {
                               >
                                 Kirim
                               </button>
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       </div>
@@ -1824,7 +1939,17 @@ useEffect(() => {
           </div>
         </div>
       </div>
-
+      <footer>
+        <div className="bg-slate-200 lg:w-[35%] lg:text-start text-center py-5 lg:rounded-tr-full lg:fixed bottom-0 px-4 sm:px-6 lg:px-8">
+          <p className="text-sm text-teal-500">
+            Developed by IT BMDev and SIJA major.
+          </p>
+          <p className="text-sm text-teal-500">
+            Copyright &copy; {new Date().getFullYear()} | Budi Mulia Vocational
+            High School
+          </p>
+        </div>
+      </footer>
       
       {/* <div>
             <h3>Absensi Siswa</h3>

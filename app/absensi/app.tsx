@@ -624,8 +624,102 @@ const [kelas, setKelas] = useState([]);
   useEffect(() => {
     fetchNomorWali();
   }, []);
-  
-  
+
+
+  // const [isOn, setIsOn] = useState(false);
+  // useEffect(() => {
+  //   // Ambil status dari backend saat komponen dimuat
+  //   fetch(`${baseUrl}/api/toggle-status`)
+  //     .then((res) => res.json())
+  //     .then((data) => setIsOn(data.status))
+  //     .catch((err) => console.error("Gagal mengambil status toggle:", err));
+  // }, []);
+
+  // const toggleSwitch = async () => {
+  //   const newStatus = !isOn;
+  //   setIsOn(newStatus);
+
+  //   // Kirim status ke backend
+  //   try {
+  //     await fetch(`${baseUrl}/api/toggle-status`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ status: newStatus }),
+  //     });
+  //   } catch (error) {
+  //     console.error("Gagal memperbarui status toggle:", error);
+  //   }
+  // };
+
+  const [isOn, setIsOn] = useState(false);
+  const [pkl, setPkl] = useState<Array<{ id_kelas: number; id_rombel: number; kelas: string; rombel: string }>>([]);
+  const [selectedKelass, setSelectedKelass] = useState<{ id_kelas: number; id_rombel: number }[]>([]);
+  const [isPklOpen, setIsPklOpen] = useState<boolean>(false);
+
+useEffect(() => {
+  const loadKelas = async () => {
+    const response = await axios.get<{ data: { id_kelas: number; id_rombel: number; kelas: string; rombel: string }[] }>(`${baseUrl}/joinNonMaster/total-kelas-siswa`);
+    setPkl(response.data.data);
+  };
+  loadKelas();
+}, []);
+
+
+const handlePklClick = () => {
+  setIsPklOpen(true);
+};
+
+const handlePklClose = () => {
+  setIsPklOpen(false);
+};
+const handleCheckboxChange = (id_kelas: number, id_rombel: number) => {
+  setSelectedKelass((prevSelected) => {
+    const isSelected = prevSelected.some(item => item.id_kelas === id_kelas && item.id_rombel === id_rombel);
+
+    return isSelected
+      ? prevSelected.filter(item => !(item.id_kelas === id_kelas && item.id_rombel === id_rombel))
+      : [...prevSelected, { id_kelas, id_rombel }];
+  });
+};
+
+
+
+const handleSavePkl = async () => {
+  try {
+    await axios.post(`${baseUrl}/absensi/update-absensi-pkl`, {
+      kelasTerpilih: selectedKelass.length > 0 ? selectedKelass : [],
+    });
+
+    toast.success("Kelas PKL berhasil disimpan ke absensi!");
+    setIsPklOpen(false);
+  } catch (error) {
+    console.error("Gagal menyimpan absensi PKL:", error);
+    toast.error("Terjadi kesalahan saat menyimpan absensi PKL.");
+  }
+};
+
+
+
+useEffect(() => {
+  const loadSelectedPkl = async () => {
+    try {
+      const response = await axios.get<{ data: { id_kelas: number; id_rombel: number }[] }>(`${baseUrl}/absensi/get-absensi-pkl`);
+      console.log("Data dari API:", response.data.data); // Debugging
+
+      setSelectedKelass(response.data.data);
+      setIsOn(response.data.data.length > 0);
+    } catch (error) {
+      console.error("Gagal mengambil kelas PKL:", error);
+    }
+  };
+
+  loadSelectedPkl();
+}, []);
+
+
+
+
+
   return (
     <div className="rounded-lg max-w-full p-3 bg-slate-100">
       <div className="pt-7 ml-7">
@@ -707,8 +801,107 @@ const [kelas, setKelas] = useState([]);
                   Pulang Pagi
                 </button>
               </div>
-            </div>
+              {/* <button
+                onClick={toggleSwitch}
+                className={`w-16 h-8 flex items-center bg-gray-300 rounded-full p-1 transition duration-300 ${isOn ? "bg-green-500" : "bg-gray-400"}`}
+              >
+                <div
+                  className={`w-6 h-6 bg-white rounded-full shadow-md transform transition duration-300 ${isOn ? "translate-x-8" : "translate-x-0"}`}
+                ></div>
+              </button> */}
+              <div>
+              <div className="w-full md:w-auto flex items-center">
+                <button
+                  onClick={handlePklClick}
+                  className="w-full p-2 border bg-purple-400 rounded text-xs text-white sm:text-sm"
+                >
+                  PKL
+                </button>
+                {/* Modal PKL */}
+                            {/* {isPklOpen && (
+                  <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white p-6 rounded-md shadow-md w-80">
+                      <h2 className="text-xl text-center font-semibold mb-4">PKL</h2>
+                      <table className="w-full">
+                        <thead>
+                          <tr>
+                            <th className="text-left">Kelas</th>
+                            <th>Pilih</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Array.isArray(pkl) &&
+                            pkl.map((item, index) => (
+                              <tr key={item.id || index}>
+                                <td className="text-left">{item.kelas}</td>
+                                <td>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedKelass.includes(item.kelas)}
+                                    onChange={() => handleCheckboxChange(item.kelas)}
+                                  />
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                      <div className="flex justify-end mt-4">
+                        <button onClick={handlePklClose} className="p-2 bg-gray-300 text-gray-700 rounded">
+                          Tutup
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )} */}
+                {isPklOpen && (
+                  <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white p-6 rounded-md shadow-md w-80">
+                      <h2 className="text-xl text-center font-semibold mb-4">PKL</h2>
+                      <table className="w-full">
+                        <thead>
+                          <tr>
+                            <th className="text-left">Kelas</th>
+                            <th>Pilih</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                        {Array.isArray(pkl) &&
+  pkl.map((item) => (
+    <tr key={item.id_kelas}> {/* Gunakan id_kelas sebagai key */}
+      <td className="text-left">{item.kelas}</td>
+      <td>
+      <input
+  type="checkbox"
+  checked={selectedKelass.some(sel => sel.id_kelas === item.id_kelas && sel.id_rombel === item.id_rombel)}
+  onChange={() => handleCheckboxChange(item.id_kelas, item.id_rombel)}
+/>
 
+
+      </td>
+    </tr>
+  ))}
+
+                        </tbody>
+                      </table>
+                      {!isOn && <p className="text-red-500 text-sm mt-2"></p>}
+                      <div className="flex justify-end mt-4 gap-2">
+                      <div className="flex justify-end mt-4 gap-2">
+                          <button onClick={handlePklClose} className="p-2 bg-gray-300 text-gray-700 rounded">
+                            Tutup
+                          </button>
+                          <button onClick={handleSavePkl} className="p-2 bg-blue-500 text-white rounded">
+                            Simpan
+                          </button>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              </div>
+            </div>
+            <ToastContainer className="mt-14" />
             {/* Tabel */}
             <div className="overflow-x-auto">
               <table className="w-full text-left mt-4 border-collapse">
@@ -749,7 +942,7 @@ const [kelas, setKelas] = useState([]);
                 <tbody>
                     {Array.isArray(groupedData) && groupedData.map((item, index) => (
                       <tr key={item.id_siswa || index}>
-                        <td className="border-b text-white text-xs sm:text-xs p-2"> {index + 1} </td>
+                        <td className="border-b text-white bg- text-xs sm:text-xs p-2"> {index + 1} </td>
                         <td className="border-b text-white text-xs sm:text-xs p-2"> {item.nama_siswa} </td>
                         {datesArray1.map((date) => {
                             //Cek apakah hari tersebut adalah libur berdasarkan hari
@@ -787,15 +980,23 @@ const [kelas, setKelas] = useState([]);
                               statusClass = pulang
                                 ? "bg-gray-700 text-white"
                                 : "bg-gray-500 text-white opacity-50";
+                            } else if (hadir === "Ketinggalan") {
+                              statusLabel = pulang ? "K✔" : "K";
+                              statusClass = pulang
+                                ? " bg-neutral-600 text-black"
+                                : " bg-neutral-400 text-white opacity-50";
                             } else if (hadir === "Izin") {
                               statusLabel = "I";
-                              statusClass = "bg-orange-500 text-white";
+                              statusClass = "bg-orange-500 text-";
                             } else if (hadir === "Sakit") {
                               statusLabel = "S";
                               statusClass = "bg-blue-500 text-white";
                             } else if (hadir === "Alpa") {
                               statusLabel = "A";
                               statusClass = "bg-red-500 text-white";
+                            } else if (hadir === "PKL") {
+                              statusLabel = "PKL";
+                              statusClass = "bg-purple-500 text-white";
                             }
 
                             return (
@@ -891,6 +1092,24 @@ const [kelas, setKelas] = useState([]);
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+      <div className="bg-white p-4 ml-4 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-lg font-semibold mb-3 text-gray-700">Keterangan Absen</h2>
+
+        <div className="grid gap-2 text-gray-600">
+          <div><span className="font-bold text-green-500">H</span> = Siswa hadir tepat waktu dan belum pulang</div>
+          <div><span className="font-bold text-blue-500">S</span> = Sakit</div>
+          <div><span className="font-bold text-orange-500">I</span> = Izin</div>
+          <div><span className="font-bold text-red-500">A</span> = Alpa</div>
+          <div><span className="font-bold text-gray-500">T</span> = Siswa terlambat dan belum pulang</div>
+          <div><span className="font-bold text-gray-600">K</span> = Siswa yang tidak membawa kartu pelajar dan belum pulang</div>
+          <div><span className="font-bold text-purple-500">PKL</span> = Siswa yang tengah menjalani PKL</div>
+          <div>
+            <span className="font-bold text-green-500">H✔</span>, 
+            <span className="font-bold text-gray-500"> T✔</span>, 
+            <span className="font-bold text-gray-600"> K✔</span>, = Siswa sudah pulang
           </div>
         </div>
       </div>

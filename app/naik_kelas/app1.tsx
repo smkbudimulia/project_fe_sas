@@ -6,9 +6,6 @@ import { updateSiswa } from "../api/siswa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Kelas } from "../api/kelas";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
-import * as XLSX from "xlsx";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -19,37 +16,18 @@ type item = {
   nis: string;
   tinggalKelas: boolean;
   id_kelas: string;
-};
-
-interface Siswa {
-  id_siswa: string;
-  nis: string;
-  id_kelas: string;
-  id_rombel: string;
-  nama_siswa: string;
-  nomor_wali: string;
-  kelas: string;
-  nama_rombel: string;
-  tinggalKelas: boolean;
 }
-
-type Absensi = {
-  id_siswa: string;
-  tanggal: string;
-  keterangan: string;
-  // tambahkan properti lain jika diperlukan
-  };
-  
-  
 
 export default function NaikKelas() {
   const [kelas, setKelas] = useState<item[]>([]);
   const [allKelas, setAllKelas] = useState<item[]>([]);
   const fetchKelasSiswaTotal = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/joinNonMaster/nama-siswa`);
+      const response = await axios.get(
+        `${baseUrl}/joinNonMaster/nama-siswa`
+      );
       setKelas(response.data.data);
-      // console.log("ini siswa", response.data);
+      console.log("ini siswa", response.data);
     } catch (error) {
       console.error("Fetch error:", error); // Menangani kesalahan
     }
@@ -61,7 +39,7 @@ export default function NaikKelas() {
     try {
       const response = await axios.get(`${baseUrl}/kelas/all-kelas`);
       setAllKelas(response.data.data);
-      // console.log("ini siswa", response.data);
+      console.log("ini siswa", response.data);
     } catch (error) {
       console.error("Fetch error:", error); // Menangani kesalahan
     }
@@ -79,7 +57,6 @@ export default function NaikKelas() {
   const [showLihatButton, setShowLihatButton] = useState(false); // State untuk tombol Lihat
   const [showData, setShowData] = useState(false); // State untuk menampilkan data setelah klik Lihat
   const [showUpdatedData, setShowUpdatedData] = useState(false);
-  const [siswaNaik, setSiswaNaik] = useState<item[]>([]);
   // Update `filteredKelas` setiap kali `selectedKelas` berubah
   useEffect(() => {
     let updatedKelas = kelas.filter((item) => {
@@ -101,16 +78,6 @@ export default function NaikKelas() {
     setFilteredKelas(updatedKelas);
   }, [selectedKelas, searchName, kelas]);
 
-  const loadKelas = async () => {
-    const response = await axios.get(
-      `${baseUrl}/joinNonMaster/nama-siswa-kelas`
-    );
-    // console.log("cek siswa:", response); // Debugging tambahan
-    const data = response.data;
-    setSiswaNaik(data.data);
-    setShowUpdatedData(true);
-  };
-
   const handleCheckboxChange = (index: number) => {
     setFilteredKelas((prev) =>
       prev.map((item, i) =>
@@ -126,19 +93,12 @@ export default function NaikKelas() {
     }
     // Filter data yang tidak memiliki `tinggalKelas: true`
     const dataToSubmit = filteredKelas
-      .filter((item) => !item.tinggalKelas && item.id_kelas !== newIdKelas)
+      .filter((item) => !item.tinggalKelas)
       .map((item) => ({
         id_siswa: item.id_siswa,
         nis: item.nis,
         id_kelas: newIdKelas,
       }));
-
-    if (dataToSubmit.length === 0) {
-      toast.error(
-        "Tidak ada siswa yang bisa dinaikkan karena kelas tujuan sama."
-      );
-      return;
-    }
 
     try {
       // Kirim data yang difilter ke server
@@ -151,38 +111,13 @@ export default function NaikKelas() {
       );
       setUpdatedKelas(updatedData); // Simpan data yang diperbarui dalam state baru
       setShowLihatButton(true);
-      setFilteredKelas([]);
-      // Ambil data terbaru setelah 10 detik
-      setTimeout(async () => {
-        try {
-          const response = await axios.get(
-            `${baseUrl}/joinNonMaster/nama-siswa-kelas`
-          );
-          console.log("Data terbaru dari server:", response.data);
-
-          if (Array.isArray(response.data.data)) {
-            setFilteredKelas(response.data.data); // Gunakan spread agar React mendeteksi perubahan
-            toast.info("Data terbaru berhasil dimuat kembali");
-          } else {
-            toast.error("Data yang diterima tidak valid");
-          }
-        } catch (error) {
-          console.error("Error mengambil data terbaru:", error);
-          toast.error("Gagal mengambil data terbaru");
-        }
-      }, 10000);
     } catch (error) {
       toast.error("Gagal memperbarui data");
       // console.error(error.response?.data || error.message);
     }
   };
-  const handleLihatClick = async () => {
-    await loadKelas(); // Pastikan mengambil data terbaru sebelum menampilkan
-    setShowLihatButton(false); // Sembunyikan tombol setelah diklik (opsional)
-    // Setelah 10 detik, sembunyikan data kembali
-    setTimeout(() => {
-      setShowUpdatedData(false);
-    }, 10000);
+  const handleLihatClick = () => {
+    setShowUpdatedData(true); // Tampilkan data setelah tombol Lihat diklik
   };
   const [isAllChecked, setIsAllChecked] = useState(false);
 
@@ -194,37 +129,9 @@ export default function NaikKelas() {
     );
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [folderName, setFolderName] = useState("Data_Lulus");
-  const openModal = () => {
-    const siswaLulus = filteredKelas.filter((siswa) => !siswa.tinggalKelas);
-
-    if (siswaLulus.length === 0) {
-      toast.info("Tidak ada siswa yang akan diluluskan");
-      return;
-    }
-
-    setIsModalOpen(true); // Jika ada siswa, buka modal
-  };
-  const closeModal = () => setIsModalOpen(false);
-  const formatData = (
-    siswaLulus: Siswa[]
-  ): Record<string, string | boolean>[] => {
-    return siswaLulus.map((siswa) => ({
-      "Nama Siswa": siswa.nama_siswa,
-      NIS: siswa.nis,
-      Kelas: siswa.kelas,
-      Rombel: siswa.nama_rombel,
-      "Nomor Wali": siswa.nomor_wali,
-      "Tinggal Kelas": siswa.tinggalKelas ? "Ya" : "Tidak",
-    }));
-  };
-
-  const handleLulus1 = async () => {
+  const handleLulus = () => {
     // Pisahkan siswa yang lulus dan siswa yang tinggal kelas
-    const siswaLulus = filteredKelas.filter(
-      (siswa) => !siswa.tinggalKelas
-    ) as Siswa[];
+    const siswaLulus = filteredKelas.filter((siswa) => !siswa.tinggalKelas);
     const siswaTinggalKelas = filteredKelas.filter(
       (siswa) => siswa.tinggalKelas
     );
@@ -244,92 +151,7 @@ export default function NaikKelas() {
     setTimeout(() => {
       setShowLulusNotif(false);
     }, 3000); // 5000 ms = 5 detik
-
-    // Format data agar lebih mudah dibaca
-    const formattedData = formatData(siswaLulus);
-    const jsonString = JSON.stringify(formattedData, null, 2);
-
-    // Buat ZIP
-    const zip = new JSZip();
-    zip.file("data_siswa_lulus.json", jsonString);
-
-    // Generate ZIP & download
-    const zipBlob = await zip.generateAsync({ type: "blob" });
-    saveAs(zipBlob, "siswa_lulus.zip");
-    closeModal();
   };
-
-  // Fungsi untuk memformat tanggal
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toISOString().split("T")[0]; // Format: "YYYY-MM-DD"
-  };
-
-  const handleLulus = async () => {
-    try {
-      const response = await axios.get(`${baseUrl}/absensi/all-absensi`);
-      const absensiData = Array.isArray(response.data)
-        ? response.data
-        : response.data.data;
-  
-      if (!absensiData || absensiData.length === 0) {
-        toast.warning("Data absensi tidak tersedia!");
-        return;
-      }
-  
-      const siswaKelasXII = filteredKelas.map((siswa) => siswa.id_siswa);
-  
-      const absensiKelasXII = absensiData.filter((absensi: Absensi) =>
-        siswaKelasXII.includes(absensi.id_siswa)
-        );
-  
-      if (absensiKelasXII.length === 0) {
-        toast.warning("Tidak ada data absensi untuk siswa kelas XII!");
-        return;
-      }
-  
-      console.log(absensiKelasXII[0]); // Cek struktur data
-  
-      const formatDate = (dateString: string) => {
-        return new Date(dateString).toISOString().split("T")[0];
-      };
-  
-      const absensiPerBulan: Record<string, any[]> = {};
-      absensiKelasXII.forEach((absensi: Record<string, any>) => {
-        const date = new Date(absensi.tanggal);
-        const bulan = date.toLocaleString("id-ID", { month: "long", year: "numeric" });
-  
-        if (!absensiPerBulan[bulan]) {
-          absensiPerBulan[bulan] = [];
-        }
-  
-        absensiPerBulan[bulan].push({
-          ID_Siswa: absensi.id_siswa,
-          Nama_Siswa: absensi.nama_siswa,
-          Kelas: absensi.kelas,
-          Rombel: absensi.nama_rombel,
-          Tanggal: formatDate(absensi.tanggal),
-          Keterangan: absensi.status || absensi.kehadiran || absensi.keterangan, // Cek properti yang ada
-        });
-      });
-  
-      const workbook = XLSX.utils.book_new();
-      Object.keys(absensiPerBulan).forEach((bulan) => {
-        const worksheet = XLSX.utils.json_to_sheet(absensiPerBulan[bulan]);
-        XLSX.utils.book_append_sheet(workbook, worksheet, bulan);
-      });
-  
-      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-      const excelBlob = new Blob([excelBuffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-  
-      saveAs(excelBlob, "riwayat_absensi_kelas_XII.xlsx");
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Gagal mengambil data absensi:", error);
-    }
-  };
-  
   return (
     <div className="rounded-lg max-w-full p-3 bg-slate-100">
       <ToastContainer className="mt-14" />
@@ -378,6 +200,25 @@ export default function NaikKelas() {
               )}
           </select>
           <p className="md:inline-block mx-2 my-2">Naik ke</p>
+          {/* <select
+            id="naikKelas"
+            value={selectedKelas1}
+            onChange={(e) => setSelectedKelas1(e.target.value)}
+            className="p-2 border rounded"
+          >
+            <option value="">Pilih Kelas</option>
+            {Array.isArray(allKelas) && allKelas.length > 0 ? (
+              [...new Set(allKelas.map((siswa) => siswa.kelas))].map(
+                (kelasOption) => (
+                  <option key={kelasOption} value={kelasOption}>
+                    {kelasOption}
+                  </option>
+                )
+              )
+            ) : (
+              <option disabled>No classes available</option> // Menampilkan opsi saat allKelas bukan array atau kosong
+            )}
+          </select> */}
           <select
             value={newIdKelas}
             onChange={(e) => setNewIdKelas(e.target.value)}
@@ -422,48 +263,32 @@ export default function NaikKelas() {
                       Kelas
                     </th>
                     <th className="p-2 sm:p-3 bg-slate-500 rounded-r-xl text-white">
-                      <div className="flex">
-                        <div className="relative group">
-                          <button className="px-4 text-white rounded-md">
-                            !
-                          </button>
-                          <div
-                            className="absolute left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-white text-black text-sm px-1 py-2 rounded-md shadow-lg w-44 opacity-0 scale-95 transition-all duration-500 ease-out 
-          group-hover:opacity-100 group-hover:scale-100"
-                          >
-                            Aktifkan untuk memilih semua checkbox
-                          </div>
-                        </div>
-                        <div className="inline-block">
-                          <input
-                            type="checkbox"
-                            checked={isAllChecked}
-                            onChange={handleToggle}
-                            className="hidden"
-                          />
+                      Tinggal Kelas
+                      <div className="inline-block">
+                        <input
+                          type="checkbox"
+                          checked={isAllChecked}
+                          onChange={handleToggle}
+                          className="hidden"
+                        />
+                        <span
+                          onClick={handleToggle}
+                          className={`w-10 h-5 flex items-center bg-gray-300 rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                            isAllChecked ? "bg-blue-600" : ""
+                          }`}
+                        >
                           <span
-                            onClick={handleToggle}
-                            className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 
-                              ${isAllChecked ? "bg-blue-600" : "bg-gray-300"}
-                            `}
-                          >
-                            <span
-                              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 
-                                ${
-                                  isAllChecked
-                                    ? "translate-x-5"
-                                    : "translate-x-0"
-                                }
-                              }`}
-                            />
-                          </span>
-                        </div>
+                            className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ${
+                              isAllChecked ? "translate-x-5" : ""
+                            }`}
+                          />
+                        </span>
                       </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {Array.isArray(filteredKelas) && filteredKelas.length > 0 ? (
+                  {Array.isArray(filteredKelas) &&
                     filteredKelas.map((item, index) => (
                       <tr key={item.id_siswa || index}>
                         <td className="p-3 sm:p-3 text-white border-b">
@@ -484,17 +309,7 @@ export default function NaikKelas() {
                           />
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="p-3 text-center text-gray-400 italic"
-                      >
-                        (Tidak ada data)
-                      </td>
-                    </tr>
-                  )}
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -509,7 +324,7 @@ export default function NaikKelas() {
               Naik
             </button>
             <button
-              onClick={openModal}
+              onClick={handleLulus}
               className="bg-blue-500 text-white py-2 px-4 rounded-md w-full"
             >
               Lulus
@@ -529,34 +344,6 @@ export default function NaikKelas() {
             )}
           </div>
 
-          {isModalOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg">
-                <h2 className="text-xl font-bold mb-3">Masukkan Nama Folder</h2>
-                <input
-                  type="text"
-                  value={folderName}
-                  onChange={(e) => setFolderName(e.target.value)}
-                  className="border rounded px-3 py-2 w-full"
-                />
-                <div className="mt-4 flex">
-                  <button
-                    onClick={closeModal}
-                    className="mr-3 px-4 py-2 bg-gray-300 rounded"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handleLulus}
-                    className="px-4 py-2 bg-blue-500 text-white rounded"
-                  >
-                    Download
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Tabel 2 */}
           <div className="w-1/2 bg-slate-600 p-4 rounded-xl">
             <div className="overflow-x-auto">
@@ -574,9 +361,8 @@ export default function NaikKelas() {
                 </thead>
                 <tbody>
                   {showUpdatedData &&
-                  Array.isArray(siswaNaik) &&
-                  siswaNaik.length > 0 ? (
-                    siswaNaik.map((item, index) => (
+                    Array.isArray(filteredKelas) &&
+                    filteredKelas.map((item, index) => (
                       <tr key={item.id_siswa || index}>
                         <td className="p-3 sm:p-3 text-white border-b">
                           {index + 1}
@@ -588,17 +374,7 @@ export default function NaikKelas() {
                           {item.kelas}
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="p-3 text-center text-gray-400 italic"
-                      >
-                        (Tidak ada data)
-                      </td>
-                    </tr>
-                  )}
+                    ))}
                 </tbody>
               </table>
             </div>
