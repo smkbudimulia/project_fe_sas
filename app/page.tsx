@@ -930,10 +930,16 @@ const Page = () => {
   // };
   const showToast = (type: "success" | "error" | "warning", message: string) => {
     const options: ToastOptions = {
-      position: "top-center",
-      className: "bg-white text-black shadow-lg rounded-lg p-4  h-24 text-xl font-bold ",
+      position: "top-left",
+      className: "bg-white shadow-lg rounded-lg p-4 font-bold ",
       bodyClassName: "text-center",
-      style: { top: "250px", width:"500px"},
+  
+      style: { top: "250px", 
+        width:"700px",
+        fontSize: "3rem",
+        color: "#000000",
+        boxShadow: "20px 20px 40px rgba(0, 0, 0, 0.6)",
+      },
     };
 
     if (type === "success") {
