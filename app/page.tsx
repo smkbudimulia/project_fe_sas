@@ -935,8 +935,8 @@ const Page = () => {
       bodyClassName: "text-center",
   
       style: { top: "250px", 
-        width:"700px",
-        fontSize: "3rem",
+        width:"800px",
+        fontSize: "4rem",
         color: "#000000",
         boxShadow: "20px 20px 40px rgba(0, 0, 0, 0.6)",
       },
