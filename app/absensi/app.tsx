@@ -816,43 +816,7 @@ useEffect(() => {
                   className="w-full p-2 border bg-purple-400 rounded text-xs text-white sm:text-sm"
                 >
                   PKL
-                </button>
-                {/* Modal PKL */}
-                            {/* {isPklOpen && (
-                  <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-6 rounded-md shadow-md w-80">
-                      <h2 className="text-xl text-center font-semibold mb-4">PKL</h2>
-                      <table className="w-full">
-                        <thead>
-                          <tr>
-                            <th className="text-left">Kelas</th>
-                            <th>Pilih</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array.isArray(pkl) &&
-                            pkl.map((item, index) => (
-                              <tr key={item.id || index}>
-                                <td className="text-left">{item.kelas}</td>
-                                <td>
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedKelass.includes(item.kelas)}
-                                    onChange={() => handleCheckboxChange(item.kelas)}
-                                  />
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                      <div className="flex justify-end mt-4">
-                        <button onClick={handlePklClose} className="p-2 bg-gray-300 text-gray-700 rounded">
-                          Tutup
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )} */}
+                </button>  
                 {isPklOpen && (
                   <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
                     <div className="bg-white p-6 rounded-md shadow-md w-80">
@@ -1104,7 +1068,6 @@ useEffect(() => {
           <div><span className="font-bold text-orange-500">I</span> = Izin</div>
           <div><span className="font-bold text-red-500">A</span> = Alpa</div>
           <div><span className="font-bold text-gray-500">T</span> = Siswa terlambat dan belum pulang</div>
-          <div><span className="font-bold text-gray-600">K</span> = Siswa yang tidak membawa kartu pelajar dan belum pulang</div>
           <div><span className="font-bold text-purple-500">PKL</span> = Siswa yang tengah menjalani PKL</div>
           <div>
             <span className="font-bold text-green-500">H✔</span>, 
