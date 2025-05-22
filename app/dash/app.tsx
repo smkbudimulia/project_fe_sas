@@ -340,7 +340,7 @@ const AdminPage = () => {
               ) : (
                 <tr>
                   <td colSpan={4} className="px-6 py-4 border-b border-gray-300 text-white text-sm text-center ">
-                    Tidak ada siswa yang alpa
+                    Semua Siswa Sudah Melakukan Absensi 
                   </td>
                 </tr>
               )}
