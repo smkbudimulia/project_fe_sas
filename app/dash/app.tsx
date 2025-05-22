@@ -12,6 +12,7 @@ import DataTable from "../components/dataTabel";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+
 type DataItem = {
   total_siswa: number;
 };
@@ -19,8 +20,10 @@ type DataItem = {
 interface Siswa {
   id_siswa: number;
   nama_siswa: string;
+  kelas_rombel: string;
   kelas: string;
   nomor_wali: string;
+
 }
 
 type AttendanceItem = {
@@ -184,6 +187,36 @@ const AdminPage = () => {
 
     fetchData();
   }, []);
+  
+  const [data, setData] = useState([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const res = await fetch(`${baseUrl}/absensi/siswa-belum-absen`); // sesuaikan path API jika beda
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const json = await res.json();
+
+        setData(json.data || []);
+      } catch (err) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // if (loading) return <p>Loading data siswa...</p>;
+  // if (error) return <p>Error: {error}</p>;
 
   return (
     <div>
@@ -259,10 +292,10 @@ const AdminPage = () => {
 
 
       <div className="flex flex-col lg:flex-row">
-        {/* Column 1: Input */}
+        {/* Tabel Absensi*/}
         <div className="w-full lg:w-1/2 p-4 lg:p-6">
           <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border overflow-x-auto">
-          <p className="lg:text-center lg:pb-3 font-semibold">Tabel Absensi </p> 
+          <p className="lg:text-center lg:pb-3 font-semibold">Absensi Global </p> 
             <div className="bg-slate-600 p-2 rounded-lg h-full">
               <div className="overflow-x-auto h-full">
                 <DataTable columns={tableColumns} data={kelas} />
@@ -270,10 +303,56 @@ const AdminPage = () => {
             </div>
           </div>
         </div>
-        {/* Column 2: Table */}
-        <div className="w-full lg:w-1/2 p-4 lg:p-6">
+
+
+        {/* Belum melakukan Absensi */}
+  <div className="w-full lg:w-1/2 p-4 lg:p-6">
       <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border "> 
-       <p className="lg:text-center lg:pb-3 font-semibold">Tabel Alpa </p> 
+       <p className="lg:text-center lg:pb-3 font-semibold">Siswa Belum Melakukan Absensi</p> 
+        <div className="bg-slate-600 p-2 rounded-xl">
+          <table className="min-w-full">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
+                  NO
+                </th>
+                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
+                  Id Siswa
+                </th>
+                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
+                  Nama 
+                </th>
+                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
+                  Kelas
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.length > 0 ? (
+                data.map(({ id_siswa, nama_siswa, kelas_rombel},index) => (
+                  <tr key={id_siswa}>
+                    <td className="px-6 py-4 border-b border-gray-300  text-white text-sm">{index + 1}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{id_siswa}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{nama_siswa}</td>
+                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{kelas_rombel}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 border-b border-gray-300 text-white text-sm text-center ">
+                    Tidak ada siswa yang alpa
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+  
+      {/* Siswa Alpa*/}
+      <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border mt-4 lg:mt-4"> 
+       <p className="lg:text-center lg:pb-3 font-semibold">Siswa Alpa / Tanpa Keterangan</p> 
         <div className="bg-slate-600 p-2 rounded-xl">
           <table className="min-w-full">
             <thead>
@@ -313,6 +392,7 @@ const AdminPage = () => {
           </table>
         </div>
       </div>
+
     </div>
       </div>
     </div>
