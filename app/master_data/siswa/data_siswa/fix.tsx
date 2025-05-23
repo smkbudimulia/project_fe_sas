@@ -835,7 +835,7 @@ export default function DataSiswa() {
     // Membuat link download
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "dasis.xlsx"; // Nama file yang diunduh
+    link.download = "Format Input Siswa.xlsx"; // Nama file yang diunduh
     link.click();
   };
 
