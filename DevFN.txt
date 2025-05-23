@@ -64,7 +64,7 @@ github
 - mengambil brench = git pull origin nama_branch
 - mengabungkan pekerjaan = git merge nama_branch
 - Menghapus branch lokal = git branch -d fitur-baru  
-- Menghapus branch di GitHub =      git push origin --delete fitur-baru
+- Menghapus branch di GitHub = git push origin --delete fitur-baru
 
 
 
