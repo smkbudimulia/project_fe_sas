@@ -56,3 +56,15 @@ REVISI KE
       "build": "next build",
       "start": "NODE_ENV=production node server.js"
     },
+
+
+github
+- untk membuat branch baru = git checkout -b fitur-baru
+- untuk pindah branch = git checkout nama_branch
+- mengambil brench = git pull origin nama_branch
+- mengabungkan pekerjaan = git merge nama_branch
+- Menghapus branch lokal = git branch -d fitur-baru  
+- Menghapus branch di GitHub =      git push origin --delete fitur-baru
+
+
+
