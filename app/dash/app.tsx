@@ -43,6 +43,10 @@ interface Siswa {
   nomor_wali: string;
 }
 
+type TableColumn = {
+  header: string;
+  accessor: keyof KelasData;
+};
 interface KelasData {
   kelas: string;
   total_siswa: number;
@@ -224,16 +228,16 @@ const AdminPage = () => {
   const totalPagesBelumAbsen = Math.ceil(siswaBelumAbsen.length / itemsPerPage);
   const totalPagesAlpa = Math.ceil(alpaData.length / itemsPerPage);
 
-  const tableColumns = [
-    { header: "Kelas", accessor: "kelas" },
-    { header: "Jumlah Siswa", accessor: "total_siswa" },
-    { header: "H", accessor: "total_hadir_perkelas" },
-    { header: "S", accessor: "total_sakit_perkelas" },
-    { header: "I", accessor: "total_izin_perkelas" },
-    { header: "A", accessor: "total_alpa_perkelas" },
-    { header: "T", accessor: "total_terlambat_perkelas" },
-    { header: "Walas", accessor: "walas" },
-  ];
+  const tableColumns: TableColumn[] = [
+  { header: "Kelas", accessor: "kelas" },
+  { header: "Jumlah Siswa", accessor: "total_siswa" },
+  { header: "H", accessor: "total_hadir_perkelas" },
+  { header: "S", accessor: "total_sakit_perkelas" },
+  { header: "I", accessor: "total_izin_perkelas" },
+  { header: "A", accessor: "total_alpa_perkelas" },
+  { header: "T", accessor: "total_terlambat_perkelas" },
+  { header: "Walas", accessor: "walas" },
+];
 
   return (
     <div className="p-4 md:p-6">
