@@ -56,13 +56,13 @@ const DataTable = <T,>({
         <table className="w-full text-left mt-4 border-collapse">
           <thead>
             <tr className="ml-2">
-              <th className=" p-2 sm:p-3 bg-slate-500 text-white">No</th>
+              <th className=" p-2 sm:p-3 bg-slate-500 text-emerald-950">No</th>
               {columns.map((column, index) => (
-                <th className="p-2 sm:p-3 bg-slate-500 text-white" key={index}>
+                <th className="p-2 sm:p-3 bg-slate-500  text-emerald-950" key={index}>
                   {column.header}
                 </th>
               ))}
-              {/* <th className="p-2 sm:p-3 bg-slate-500 text-white">Aksi</th> */}
+              {/* <th className="p-2 sm:p-3 bg-slate-500  text-emerald-950">Aksi</th> */}
               {/* Kolom aksi */}
             </tr>
           </thead>
@@ -70,11 +70,11 @@ const DataTable = <T,>({
             {/* {Array.isArray(data) &&
               data.map((row, rowIndex) => (
                 <tr key={rowIndex}>
-                  <td className="p-3 sm:p-3 text-white border-b z-50">
+                  <td className="p-3 sm:p-3  text-emerald-950 border-b z-50">
                     {rowIndex + 1}
                   </td>
                   {columns.map((column, colIndex) => (
-                    <td className="p-3 sm:p-3 text-white border-b z-50" key={column.header}>
+                    <td className="p-3 sm:p-3  text-emerald-950 border-b z-50" key={column.header}>
                       
                       {typeof column.Cell === "function" 
                         ? column.Cell({ row }) 
@@ -93,12 +93,12 @@ const DataTable = <T,>({
             {Array.isArray(data) &&
               data.map((row, rowIndex) => (
                 <tr key={rowIndex}>
-                  <td className="p-3 sm:p-3 text-white border-b z-50">
+                  <td className="p-3 sm:p-3  text-emerald-950 border-b z-50">
                     {rowIndex + 1} {/* Menampilkan nomor urut */}
                   </td>
                   {columns.map((column, colIndex) => (
                     <td
-                      className="p-3 sm:p-3 text-white border-b z-50"
+                      className="p-3 sm:p-3  text-emerald-950 border-b z-50"
                       key={column.header}
                     >
                       {/* Pastikan column.Cell ada sebelum mengaksesnya */}

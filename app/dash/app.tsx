@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import Cookies from "js-cookie"; // Import js-cookie
+import Cookies from "js-cookie";
 import {
   UserIcon,
   UserGroupIcon,
@@ -10,12 +10,30 @@ import {
 } from "@heroicons/react/24/outline";
 import DataTable from "../components/dataTabel";
 
+// Chart.js
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+} from "chart.js";
+import { Pie, Bar } from "react-chartjs-2";
+
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title
+);
+
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-
-type DataItem = {
-  total_siswa: number;
-};
 
 interface Siswa {
   id_siswa: number;
@@ -23,98 +41,35 @@ interface Siswa {
   kelas_rombel: string;
   kelas: string;
   nomor_wali: string;
-
 }
 
-type AttendanceItem = {
-  keterangan: string;
-  tanggal: string;
-  // Tambahkan properti lainnya sesuai dengan struktur data Anda
-};
+interface KelasData {
+  kelas: string;
+  total_siswa: number;
+  total_hadir_perkelas: number;
+  total_sakit_perkelas: number;
+  total_izin_perkelas: number;
+  total_alpa_perkelas: number;
+  total_terlambat_perkelas: number;
+  walas: string;
+}
 
-type Admin = {
-  id_admin: number;
-  nama_admin: string;
-  alamat: string;
-  // Tambahkan properti lain yang sesuai dengan struktur data di tabel 'admin'
-};
 interface Kehadiran {
   total_hadir: number;
   total_terlambat: number;
   total_alpa: number;
   total_sakit: number;
   total_izin: number;
-  total_pulang: number; // Tambahkan total pulang
+  total_pulang: number;
 }
 
 const AdminPage = () => {
-  const [admins, setAdmins] = useState<Admin[]>([]);
   const router = useRouter();
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  const [totalSiswa, setTotalSiswa] = useState([]); // Menggunakan angka untuk total siswa// Inisialisasi dengan array kosong
-
-  useEffect(() => {
-    // Fungsi untuk mengambil data dari API
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${baseUrl}/joinNonMaster/total-kelas-siswa`);
-        const result = await response.json();
-
-        // Memeriksa apakah response berhasil
-        if (result.Status === 200) {
-          // Menghitung total siswa dari response.data
-          const total = result.data.reduce(
-            (sum: number, item: DataItem) => sum + item.total_siswa,
-            0
-          );
-
-          // Menyimpan total siswa ke dalam state
-          setTotalSiswa(total);
-
-          // Menyimpan data kelas ke dalam state
-          setKelas(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, []); // Empty dependency array untuk menjalankan fetch hanya sekali saat komponen pertama kali dimuat
-
-  // const router = useRouter();
-
-  useEffect(() => {
-    const token = Cookies.get("token");
-    // console.log(token);
-    if (!token) {
-      router.push("../login");
-      return;
-    }
-    axios.defaults.headers.common["Authorization"] = token;
-  }, [router]);
-
-  const [siswaData, setSiswaData] = useState([]);
-  const fetchNamaKelas = async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}/joinNonMaster/nama-siswa-kelas`
-      );
-      setSiswaData(response.data.data); // Menyimpan data ke state kelas
-      console.log("total", response.data);
-    } catch (error) {
-      console.error("Fetch error:", error); // Menangani kesalahan
-    }
-  };
-  useEffect(() => {
-    fetchNamaKelas(); // Panggil fungsi fetch saat komponen di-mount
-  }, []);
-
-  const [kelas, setKelas] = useState([]);
+  // Statistik
   const [totalSemuaSiswa, setTotalSemuaSiswa] = useState(0);
-  // const [totalSemuaKehadiran, setTotalSemuaKehadiran] = useState(0);
+  const [totalSemuaRombel, setTotalSemuaRombel] = useState(0);
+  const [totalSemuaGuru, setTotalSemuaGuru] = useState(0);
   const [totalSemuaKehadiran, setTotalSemuaKehadiran] = useState<Kehadiran>({
     total_hadir: 0,
     total_terlambat: 0,
@@ -124,34 +79,150 @@ const AdminPage = () => {
     total_pulang: 0,
   });
   const [totalPerkategori, setTotalPerkategori] = useState(0);
-  const [totalSemuaRombel, setTotalSemuaRombel] = useState(0);
-  const [totalSemuaGuru, setTotalSemuaGuru] = useState(0);
-  const fetchKelasSiswaTotal = async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}/joinNonMaster/total-kelas-siswa`
-      );
+  const [kelas, setKelas] = useState<KelasData[]>([]);
 
-      // Menyimpan data ke state
-      setKelas(response.data.data);
-      setTotalSemuaSiswa(response.data.totalSemuaSiswa); // Simpan totalSemuaSiswa
-      setTotalSemuaKehadiran(response.data.totalKeseluruhan);
-      setTotalPerkategori(response.data.totalSemuaKategori);
-      setTotalSemuaRombel(response.data.totalSemuaRombel);
-      setTotalSemuaGuru(response.data.totalSemuaGuru);
+  // Data siswa
+  const [siswaBelumAbsen, setSiswaBelumAbsen] = useState<Siswa[]>([]);
+  const [alpaData, setAlpaData] = useState<Siswa[]>([]);
 
+  // Pagination
+  const [currentPageBelumAbsen, setCurrentPageBelumAbsen] = useState(1);
+  const [currentPageAlpa, setCurrentPageAlpa] = useState(1);
+  const itemsPerPage = 10;
 
-      console.log("total siswa", response.data); // Debugging
-    } catch (error) {
-      console.error("Fetch error:", error); // Menangani kesalahan
-    }
+  // Chart data
+  const pieData = {
+    labels: ["Hadir", "Terlambat", "Alpa", "Sakit", "Izin", "Pulang"],
+    datasets: [
+      {
+        data: [
+          totalSemuaKehadiran.total_hadir,
+          totalSemuaKehadiran.total_terlambat,
+          totalSemuaKehadiran.total_alpa,
+          totalSemuaKehadiran.total_sakit,
+          totalSemuaKehadiran.total_izin,
+          totalSemuaKehadiran.total_pulang,
+        ],
+        backgroundColor: [
+          "#10B981", // Hadir - hijau
+          "#F59E0B", // Terlambat - kuning
+          "#EF4444", // Alpa - merah
+          "#6366F1", // Sakit - ungu
+          "#3B82F6", // Izin - biru
+          "#8B5CF6", // Pulang - ungu muda
+        ],
+        borderWidth: 0,
+      },
+    ],
   };
 
+  const barData = {
+    labels: kelas.map((k) => k.kelas),
+    datasets: [
+      {
+        label: "Jumlah Siswa",
+        data: kelas.map((k) => k.total_siswa),
+        backgroundColor: "#3B82F6",
+        borderRadius: 4,
+        borderSkipped: false,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom" as const,
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12,
+          },
+        },
+      },
+    },
+  };
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+        },
+      },
+    },
+  };
+
+  // Auth
   useEffect(() => {
-    fetchKelasSiswaTotal(); // Panggil fungsi fetch saat komponen di-mount
+    const token = Cookies.get("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }, [router]);
+
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [
+          kelasRes,
+          belumAbsenRes,
+          alpaRes,
+        ] = await Promise.all([
+          axios.get(`${baseUrl}/joinNonMaster/total-kelas-siswa`),
+          fetch(`${baseUrl}/absensi/siswa-belum-absen`),
+          fetch(`${baseUrl}/absensi/all-absensi`),
+        ]);
+
+        const kelasData = kelasRes.data;
+        setKelas(kelasData.data || []);
+        setTotalSemuaSiswa(kelasData.totalSemuaSiswa || 0);
+        setTotalSemuaRombel(kelasData.totalSemuaRombel || 0);
+        setTotalSemuaGuru(kelasData.totalSemuaGuru || 0);
+        setTotalSemuaKehadiran(kelasData.totalKeseluruhan || {});
+        setTotalPerkategori(kelasData.totalSemuaKategori || 0);
+
+        const belumAbsenJson = await belumAbsenRes.json();
+        setSiswaBelumAbsen(belumAbsenJson.data || []);
+
+        const alpaJson = await alpaRes.json();
+        if (alpaJson.Status === 200) {
+          const today = new Date().toISOString().split("T")[0];
+          const alpaSiswa = alpaJson.data.filter(
+            (item: any) => item.keterangan === "Alpa" && item.tanggal === today
+          );
+          setAlpaData(alpaSiswa);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard ", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  //   const headers = Object.keys(siswaData[0]);
+  // Pagination helper
+  const getPaginatedData = (data: Siswa[], page: number) => {
+    const startIndex = (page - 1) * itemsPerPage;
+    return data.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const totalPagesBelumAbsen = Math.ceil(siswaBelumAbsen.length / itemsPerPage);
+  const totalPagesAlpa = Math.ceil(alpaData.length / itemsPerPage);
 
   const tableColumns = [
     { header: "Kelas", accessor: "kelas" },
@@ -164,236 +235,194 @@ const AdminPage = () => {
     { header: "Walas", accessor: "walas" },
   ];
 
-  const [alpaData, setAlpaData] = useState<Siswa[]>([]);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${baseUrl}/absensi/all-absensi`);
-        const result = await response.json();
-        if (result.Status === 200) {
-          const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-          // Filter siswa dengan keterangan "Alpa"
-          const alpaSiswa = result.data.filter(
-            (item: AttendanceItem) => item.keterangan === "Alpa" && item.tanggal === today
-          );
-          setAlpaData(alpaSiswa);
-        } else {
-          console.error("Data tidak ditemukan");
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-  
-  const [data, setData] = useState([]);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch(`${baseUrl}/absensi/siswa-belum-absen`); // sesuaikan path API jika beda
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        const json = await res.json();
-
-        setData(json.data || []);
-      } catch (err) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-  // if (loading) return <p>Loading data siswa...</p>;
-  // if (error) return <p>Error: {error}</p>;
-
   return (
-    <div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-3 2xl:gap-7.5 px-6">
-        <div className="rounded-lg border border-stroke bg-blue-500 px-7.5 px-2 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 rounded-full bg-meta-2 dark:bg-meta-4">
-            <UserIcon className="h-8 w-8 text-gray-700" />
-          </div>
-          <div className="mt-4 flex items-end justify-between">
+    <div className="p-4 md:p-6">
+      {/* Statistik Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+        {[
+          { title: "Total Siswa", value: totalSemuaSiswa, icon: UserIcon, bg: "bg-blue-500" },
+          { title: "Total Rombel", value: totalSemuaRombel, icon: UserGroupIcon, bg: "bg-green-500" },
+          { title: "Total Staff", value: totalSemuaGuru, icon: IdentificationIcon, bg: "bg-orange-500" },
+        ].map((item, idx) => (
+          <div
+            key={idx}
+            className={`rounded-xl shadow-md p-5 text-white ${item.bg} flex items-center justify-between`}
+          >
             <div>
-              <span className="text-sm font-medium">Total Siswa</span>
+              <p className="text-sm font-medium opacity-90">{item.title}</p>
+              <p className="text-2xl font-bold mt-1">{item.value}</p>
             </div>
-            <span className="flex items-center gap-1 text-sm font-medium text-meta-3">
-              {totalSemuaSiswa}
-            </span>
+            <item.icon className="h-10 w-10 text-white" />
+          </div>
+        ))}
+      </div>
+
+      {/* Grafik */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Pie Chart - Rekap Kehadiran */}
+        <div className="bg-white rounded-xl shadow-md p-4">
+          <h3 className="font-semibold text-gray-700 mb-3 text-center">Rekap Kehadiran Hari Ini</h3>
+          <div className="h-64">
+            <Pie data={pieData} options={pieOptions} />
           </div>
         </div>
-        <div className="rounded-lg border border-stroke bg-green-500 px-7.5 px-2 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 rounded-full bg-meta-2 dark:bg-meta-4">
-            <UserGroupIcon className="h-8 w-8 text-blue-500" />
-          </div>
-          <div className="mt-4 flex items-end justify-between">
-            <div>
-              <span className="text-sm font-medium">Total Rombel</span>
-            </div>
-            <span className="flex items-center gap-1 text-sm font-medium text-meta-3">
-              {totalSemuaRombel}
-            </span>
-          </div>
-        </div>
-        <div className="rounded-lg border border-stroke bg-orange-500 px-7.5 px-2 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 rounded-full bg-meta-2 dark:bg-meta-4">
-            <IdentificationIcon className="h-8 w-8 text-green-500" />
-          </div>
-          <div className="mt-4 flex items-end justify-between">
-            <div>
-              <span className="text-sm font-medium">Total Staff</span>
-            </div>
-            <span className="flex items-center gap-1 text-sm font-medium text-meta-3 undefined ">
-              {totalSemuaGuru}
-            </span>
+
+        {/* Bar Chart - Siswa per Kelas */}
+        <div className="bg-white rounded-xl shadow-md p-4">
+          <h3 className="font-semibold text-gray-700 mb-3 text-center">Jumlah Siswa per Kelas</h3>
+          <div className="h-64">
+            <Bar data={barData} options={barOptions} />
           </div>
         </div>
       </div>
-      <div className="mt-5 px-6 py-4 rounded-lg ">
-  <div className="overflow-x-auto max-w-full">
-    <table className="w-full table-auto  ">
-      <thead>
-        <tr className="">
-          <th className="px-4 py-2 text-slate-800 ">Total Hadir</th>
-          <th className="px-4 py-2 text-slate-800 ">Terlambat</th>
-          <th className="px-4 py-2 text-slate-800 ">Alpa</th>
-          <th className="px-4 py-2 text-slate-800 ">Sakit</th>
-          <th className="px-4 py-2 text-slate-800 ">Izin</th>
-          <th className="px-4 py-2 text-slate-800 ">Total Semua Kategori</th>
-          <th className="px-4 py-2 text-slate-800">Total Pulang</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr className="text-center text-gray-800 bg-white">
-          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_hadir}</td>
-          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_terlambat}</td>
-          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_alpa}</td>
-          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_sakit}</td>
-          <td className="px-4 py-2 ">{totalSemuaKehadiran.total_izin}</td>
-          <td className="px-4 py-2  font-semibold">{totalPerkategori}</td>
-          <td className="px-4 py-2">{totalSemuaKehadiran.total_pulang}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
 
+      {/* Tabel Rekap (opsional, bisa dihapus jika sudah ada grafik) */}
+      <div className="bg-white rounded-xl shadow-md p-4 mb-6 overflow-x-auto">
+        <h3 className="font-semibold text-gray-700 mb-3">Ringkasan Angka</h3>
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100 text-gray-600">
+            <tr>
+              {["Hadir", "Terlambat", "Alpa", "Sakit", "Izin", "Total", "Pulang"].map((col) => (
+                <th key={col} className="px-3 py-2 text-center">{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="text-center">
+              <td className="px-3 py-2">{totalSemuaKehadiran.total_hadir}</td>
+              <td className="px-3 py-2">{totalSemuaKehadiran.total_terlambat}</td>
+              <td className="px-3 py-2">{totalSemuaKehadiran.total_alpa}</td>
+              <td className="px-3 py-2">{totalSemuaKehadiran.total_sakit}</td>
+              <td className="px-3 py-2">{totalSemuaKehadiran.total_izin}</td>
+              <td className="px-3 py-2 font-semibold">{totalPerkategori}</td>
+              <td className="px-3 py-2">{totalSemuaKehadiran.total_pulang}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <div className="flex flex-col lg:flex-row">
-        {/* Tabel Absensi*/}
-        <div className="w-full lg:w-1/2 p-4 lg:p-6">
-          <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border overflow-x-auto">
-          <p className="lg:text-center lg:pb-3 font-semibold">Absensi Global </p> 
-            <div className="bg-slate-600 p-2 rounded-lg h-full">
-              <div className="overflow-x-auto h-full">
-                <DataTable columns={tableColumns} data={kelas} />
-              </div>
-            </div>
+      {/* Sisa konten: Tabel & Daftar Siswa */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow-md p-4">
+          <h3 className="font-semibold text-gray-800 mb-3 text-center">
+  Absensi Global
+</h3>
+          <div className="overflow-x-auto">
+            <DataTable columns={tableColumns} data={kelas} />
           </div>
         </div>
 
-
-        {/* Belum melakukan Absensi */}
-  <div className="w-full lg:w-1/2 p-4 lg:p-6">
-      <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border "> 
-       <p className="lg:text-center lg:pb-3 font-semibold">Siswa Belum Melakukan Absensi</p> 
-        <div className="bg-slate-600 p-2 rounded-xl">
-          <table className="min-w-full">
-            <thead>
-              <tr>
-                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                  NO
-                </th>
-                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                  Id Siswa
-                </th>
-                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                  Nama 
-                </th>
-                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                  Kelas
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.length > 0 ? (
-                data.map(({ id_siswa, nama_siswa, kelas_rombel},index) => (
-                  <tr key={id_siswa}>
-                    <td className="px-6 py-4 border-b border-gray-300  text-white text-sm">{index + 1}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{id_siswa}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{nama_siswa}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{kelas_rombel}</td>
+        <div className="space-y-6">
+          {/* Belum Absen */}
+          <div className="bg-white rounded-xl shadow-md p-4">
+            <h3 className="font-semibold text-gray-700 mb-3 text-center">Siswa Belum Absen</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-700 text-white">
+                  <tr>
+                    <th className="px-3 py-2">#</th>
+                    <th className="px-3 py-2">ID</th>
+                    <th className="px-3 py-2">Nama</th>
+                    <th className="px-3 py-2">Kelas</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="px-6 py-4 border-b border-gray-300 text-white text-sm text-center ">
-                    Semua Siswa Sudah Melakukan Absensi 
-                  </td>
-                </tr>
+                </thead>
+                <tbody>
+                  {siswaBelumAbsen.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-4 text-center text-gray-500">
+                        Semua siswa sudah absen
+                      </td>
+                    </tr>
+                  ) : (
+                    getPaginatedData(siswaBelumAbsen, currentPageBelumAbsen).map((siswa, idx) => (
+                      <tr key={siswa.id_siswa} className="border-b text-gray-700 hover:bg-gray-50">
+                        <td className="px-3 py-2">{(currentPageBelumAbsen - 1) * itemsPerPage + idx + 1}</td>
+                        <td className="px-3 py-2">{siswa.id_siswa}</td>
+                        <td className="px-3 py-2">{siswa.nama_siswa}</td>
+                        <td className="px-3 py-2">{siswa.kelas_rombel}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {/* Pagination Belum Absen */}
+              {totalPagesBelumAbsen > 1 && (
+                <div className="flex justify-center mt-4 overflow-x-auto pb-2">
+                  <div className="flex flex-wrap justify-center gap-1 max-w-full">
+                    {[...Array(totalPagesBelumAbsen)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPageBelumAbsen(i + 1)}
+                        className={`px-3 py-1.5 text-sm rounded-md min-w-[36px] flex items-center justify-center ${
+                          currentPageBelumAbsen === i + 1
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          </div>
 
-  
-      {/* Siswa Alpa*/}
-      <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border mt-4 lg:mt-4"> 
-       <p className="lg:text-center lg:pb-3 font-semibold">Siswa Alpa / Tanpa Keterangan</p> 
-        <div className="bg-slate-600 p-2 rounded-xl">
-          <table className="min-w-full">
-            <thead>
-              <tr>
-                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                  NO
-                </th>
-                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                  Nama
-                </th>
-                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                  Kelas
-                </th>
-                <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-white tracking-wider">
-                  Wa Ortu
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {alpaData.length > 0 ? (
-                alpaData.map((siswa, index) => (
-                  <tr key={siswa.id_siswa}>
-                    <td className="px-6 py-4 border-b border-gray-300  text-white text-sm">{index + 1}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{siswa.nama_siswa}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{siswa.kelas}</td>
-                    <td className="px-6 py-4 border-b border-gray-300 text-white  text-sm">{siswa.nomor_wali}</td>
+          {/* Siswa Alpa */}
+          <div className="bg-white rounded-xl shadow-md p-4">
+            <h3 className="font-semibold text-gray-700 mb-3 text-center">Siswa Alpa</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-700 text-white">
+                  <tr>
+                    <th className="px-3 py-2">#</th>
+                    <th className="px-3 py-2">Nama</th>
+                    <th className="px-3 py-2">Kelas</th>
+                    <th className="px-3 py-2">Wa Ortu</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="px-6 py-4 border-b border-gray-300 text-white text-sm text-center ">
-                    Tidak ada siswa yang alpa
-                  </td>
-                </tr>
+                </thead>
+                <tbody>
+                  {alpaData.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-4 text-center text-gray-500">
+                        Tidak ada siswa alpa hari ini
+                      </td>
+                    </tr>
+                  ) : (
+                    getPaginatedData(alpaData, currentPageAlpa).map((siswa, idx) => (
+                      <tr key={siswa.id_siswa} className="border-b text-gray-700 hover:bg-gray-50">
+                        <td className="px-3 py-2">{(currentPageAlpa - 1) * itemsPerPage + idx + 1}</td>
+                        <td className="px-3 py-2">{siswa.nama_siswa}</td>
+                        <td className="px-3 py-2">{siswa.kelas}</td>
+                        <td className="px-3 py-2">{siswa.nomor_wali}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {/* Pagination Alpa */}
+              {totalPagesAlpa > 1 && (
+                <div className="flex justify-center mt-4 overflow-x-auto pb-2">
+                  <div className="flex flex-wrap justify-center gap-1 max-w-full">
+                    {[...Array(totalPagesAlpa)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPageAlpa(i + 1)}
+                        className={`px-3 py-1.5 text-sm rounded-md min-w-[36px] flex items-center justify-center ${
+                          currentPageAlpa === i + 1
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
+          </div>
         </div>
-      </div>
-
-    </div>
       </div>
     </div>
   );
