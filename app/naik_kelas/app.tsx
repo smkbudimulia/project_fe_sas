@@ -124,44 +124,44 @@ export default function NaikKelas() {
       toast.error("Pilih Kelas baru sebelum mengirim.");
       return;
     }
-    // Filter data yang tidak memiliki `tinggalKelas: true`
-    const dataToSubmit = filteredKelas
-      .filter((item) => !item.tinggalKelas && item.id_kelas !== newIdKelas)
-      .map((item) => ({
-        id_siswa: item.id_siswa,
-        nis: item.nis,
-        id_kelas: newIdKelas,
-      }));
+    const siswaNaik = filteredKelas.filter((item) => item.tinggalKelas && item.id_kelas !== newIdKelas);
+    const siswaTinggal = filteredKelas.filter((item) => !item.tinggalKelas);
 
-    if (dataToSubmit.length === 0) {
-      toast.error(
-        "Tidak ada siswa yang bisa dinaikkan karena kelas tujuan sama."
-      );
+    const sudahDiKelasTujuan = filteredKelas.some((item) => item.tinggalKelas && item.id_kelas === newIdKelas);
+
+    if (siswaNaik.length === 0) {
+      if (sudahDiKelasTujuan) {
+        toast.error("Tidak ada siswa yang bisa dinaikkan karena kelas tujuan sama.");
+      } else {
+        toast.error("Tidak ada siswa yang dipilih untuk naik kelas.");
+      }
       return;
     }
 
+    const dataToSubmit = siswaNaik.map((item) => ({
+      id_siswa: item.id_siswa,
+      nis: item.nis,
+      id_kelas: newIdKelas,
+    }));
+
+    console.log("DEBUG - siswaNaik:", siswaNaik.map(s => s.nama_siswa));
+    console.log("DEBUG - siswaTinggal:", siswaTinggal.map(s => s.nama_siswa));
+    console.log("DEBUG - dataToSubmit:", dataToSubmit);
+
     try {
-      // Kirim data yang difilter ke server
       await axios.put(`${baseUrl}/naik/naik-kelas`, dataToSubmit);
       toast.success("Data siswa berhasil diperbarui");
 
-      // Perbarui tampilan tabel dengan data yang sudah diperbarui
-      const updatedData = filteredKelas.map((item) =>
-        !item.tinggalKelas ? { ...item, id_kelas: newIdKelas } : item
-      );
-      setUpdatedKelas(updatedData); // Simpan data yang diperbarui dalam state baru
+      setUpdatedKelas((prev) => [...prev, ...siswaNaik]); // Simpan data yang diperbarui
       setShowLihatButton(true);
       setFilteredKelas([]);
-      // Ambil data terbaru setelah 10 detik
       setTimeout(async () => {
         try {
           const response = await axios.get(
             `${baseUrl}/joinNonMaster/nama-siswa-kelas`
           );
-          console.log("Data terbaru dari server:", response.data);
-
           if (Array.isArray(response.data.data)) {
-            setFilteredKelas(response.data.data); // Gunakan spread agar React mendeteksi perubahan
+            setFilteredKelas(response.data.data);
             toast.info("Data terbaru berhasil dimuat kembali");
           } else {
             toast.error("Data yang diterima tidak valid");
@@ -173,7 +173,6 @@ export default function NaikKelas() {
       }, 10000);
     } catch (error) {
       toast.error("Gagal memperbarui data");
-      // console.error(error.response?.data || error.message);
     }
   };
   const handleLihatClick = async () => {

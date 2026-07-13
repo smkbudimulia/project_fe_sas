@@ -1,30 +1,19 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import Footer from './components/footer/page';
-import Navbar from './components/navbar/page';
-import Sidebar from './components/sidebar/page';
 import ClientTokenHandler from './components/ClientTokenHandler';
 
-const poppins = Poppins({ weight: ["300", "400", "400"], subsets: ["latin"] });
-
-// export const metadata: Metadata = {
-//   title: "Nextjs Authentication",
-//   description: "Nextjs Authentication",
-// };
+const poppins = Poppins({ 
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["latin"] 
+});
 
 export const metadata: Metadata = {
   title: "Sistem Absensi",
   description: "Sistem Absensi",
   icons: {
-    icon: {
-      rel: "icon",
-      url: "/favicon1.ico",
-    },
-    apple: {
-      rel: "apple-touch-icon",
-      url: "/favicon1.ico",
-    },
+    icon: "/favicon1.ico",
+    apple: "/favicon1.ico",
   },
 };
 
@@ -35,13 +24,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-
-      <body className={poppins.className}>
-      <ClientTokenHandler />
-      {children}
-     
-        </body>
-        
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className={`${poppins.className} bg-gray-50`}>
+        <ClientTokenHandler />
+        {children}
+      </body>
     </html>
   );
 }
