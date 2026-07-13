@@ -433,9 +433,19 @@ const Page = () => {
       </div>
 
       {/* Institution name */}
-      <div className="text-center text-4xl md:text-5xl lg:text-7xl font-bold px-4" style={{ fontFamily: "Poppins, sans-serif" }}>
+      <div className="text-center text-4xl md:text-5xl lg:text-4xl font-bold px-4" style={{ fontFamily: "Poppins, sans-serif" }}>
         {namaInstansi}
+        
       </div>
+
+      {/* Marquee */}
+          <div className="mt-4 lg:mt-8">
+            <Marquee gradient={false} speed={200} loop={0}>
+              <span className="text-4xl lg:text-6xl text-teal-900 mx-2" style={{ fontFamily: 'Linebeam, sans-serif' }}>
+                SEKOLAH ITU IBADAH. JADI JANGAN LUPA NIAT, JANGAN LUPA DOA ... DAN JANGAN LUPA ABSEN! OK ;) ~ 
+              </span>
+            </Marquee>
+          </div>
 
       {/* Action buttons dropdown */}
       <div className="relative px-4">
@@ -514,14 +524,7 @@ const Page = () => {
             )}
           </div>
 
-          {/* Marquee */}
-          <div className="mt-4 lg:mt-8">
-            <Marquee gradient={false} speed={200} loop={0}>
-              <span className="text-4xl lg:text-6xl text-teal-900 mx-2" style={{ fontFamily: 'Linebeam, sans-serif' }}>
-                DISIPLIN ADALAH KUNCI KESUKSESAN,! ~ 
-              </span>
-            </Marquee>
-          </div>
+          
         </div>
 
         {/* Right column - Attendance table */}
@@ -570,12 +573,15 @@ const Page = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-slate-200 text-center lg:text-left py-4 lg:py-5 lg:rounded-tr-full lg:fixed lg:bottom-0 px-4">
+      <footer className="bg-slate-900 text-center lg:text-left py-4 lg:py-5 lg:rounded-tr-3xl lg:fixed lg:bottom-0 px-4 py-4">
         <p className="text-sm text-teal-500">
           Developed by IT BMDev and SIJA major.
         </p>
         <p className="text-sm text-teal-500">
           Copyright &copy; {new Date().getFullYear()} | Budi Mulia Vocational High School
+        </p>
+        <p className="text-sm text-teal-500">
+         <span className="font-mono"> Versi: 1.5.20</span>
         </p>
       </footer>
 
