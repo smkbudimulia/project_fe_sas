@@ -1,8 +1,14 @@
 "use client";
 
+import { useState, useEffect } from 'react';
+
 export default function Footer() {
-  // Ambil versi dari environment variable
-  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || "dev";
+  const [appVersion, setAppVersion] = useState("dev");
+
+  useEffect(() => {
+    
+    setAppVersion(`1.5.20`);
+  }, []);
 
   return (
     <footer className="bg-slate-100 text-white py-6 relative shadow-md z-0">
