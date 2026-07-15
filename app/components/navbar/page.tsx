@@ -128,7 +128,7 @@ const Navbar: React.FC<NavbarProps> = (props) => {
   };
 
   const { namaAdmin, status } = useUserInfo();
-  const [profileImage, setProfileImage] = useState("/default-image.jpg"); // Gambar default
+  const [profileImage, setProfileImage] = useState("/next.svg"); // Gambar default
 
   useEffect(() => {
     // Ambil gambar dari Local Storage
