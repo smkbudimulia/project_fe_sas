@@ -253,14 +253,17 @@ export default function NaikKelas() {
 
       const workbook = XLSX.utils.book_new();
 
-      const siswaSheet = siswaLulus.map((siswa) => ({
-        "ID Siswa": siswa.id_siswa,
-        "Nama Siswa": siswa.nama_siswa,
-        NIS: siswa.nis,
-        Kelas: siswa.kelas,
-        Rombel: siswa.nama_rombel,
-        "Nomor Wali": siswa.nomor_wali,
-      }));
+      const siswaSheet = siswaLulus.map((siswa) => {
+        const s = siswa as Siswa;
+        return {
+          "ID Siswa": s.id_siswa,
+          "Nama Siswa": s.nama_siswa,
+          NIS: s.nis,
+          Kelas: s.kelas,
+          Rombel: s.nama_rombel,
+          "Nomor Wali": s.nomor_wali,
+        };
+      });
       const siswaWs = XLSX.utils.json_to_sheet(siswaSheet);
       XLSX.utils.book_append_sheet(workbook, siswaWs, "Data Siswa");
 
