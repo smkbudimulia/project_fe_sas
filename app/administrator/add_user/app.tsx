@@ -90,7 +90,7 @@ export default function DataSiswa() {
           ? row.foto 
           : row.foto instanceof File 
           ? URL.createObjectURL(row.foto) 
-          : "/default.jpg"; // Gambar default jika tidak ada foto
+          : "/next.svg"; // Gambar default jika tidak ada foto
     
         return <img src={fotoSrc} alt="Admin Foto" className="w-12 h-12 rounded-full object-cover" />;
       }

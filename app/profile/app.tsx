@@ -111,19 +111,25 @@ const ProfileCard = () => {
   };
 
   const getImageSrc = (imagePreview: string | ArrayBuffer | null) => {
-    if (imagePreview === null) {
-      return ''; // Atau gambar default jika null
+    if (imagePreview === null || imagePreview === "") {
+      return "/next.svg"; // Gambar default jika null atau string kosong
     }
 
     if (typeof imagePreview === 'string') {
-      return imagePreview; // Jika sudah string (Data URL)
+      if (imagePreview.startsWith('data:')) {
+        return imagePreview; // Data URL valid
+      }
+      if (imagePreview.startsWith('http')) {
+        return imagePreview; // External URL
+      }
+      return "/next.svg"; // Fallback untuk path lokal yang tidak valid
     } else if (imagePreview instanceof ArrayBuffer) {
       // Jika ArrayBuffer, buat URL objek dari ArrayBuffer
       const blob = new Blob([imagePreview], { type: 'image/jpeg' }); // Sesuaikan dengan tipe gambar
       return URL.createObjectURL(blob);
     }
 
-    return ''; // Jika tidak ada gambar, kembalikan string kosong
+    return "/next.svg"; // Default jika tidak ada gambar
   };
 
   return (

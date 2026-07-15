@@ -108,9 +108,13 @@ const DataTable = <T,>({
                         row[column.accessor] ? (
                         <img
                           src={`${BASE_URL}img/${String(row[column.accessor])}`}
-                          // alt={String(row.nama)}
                           alt={(row as { nama: string }).nama}
                           className="w-16 h-16 object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.onerror = null;
+                            target.src = "/next.svg";
+                          }}
                         />
                       ) : row[column.accessor] !== undefined ? (
                         String(row[column.accessor]) // Render nilai sebagai string
