@@ -40,8 +40,12 @@ type Absensi = {
   id_siswa: string;
   tanggal: string;
   keterangan: string;
-  // tambahkan properti lain jika diperlukan
-  };
+  nama_siswa: string;
+  kelas: string;
+  nama_rombel: string;
+  status?: string;
+  kehadiran?: string;
+};
   
   
 
