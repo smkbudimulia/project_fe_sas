@@ -19,6 +19,9 @@ type item = {
   nis: string;
   tinggalKelas: boolean;
   id_kelas: string;
+  id_rombel: string;
+  nama_rombel: string;
+  nomor_wali: string;
 };
 
 interface Siswa {
