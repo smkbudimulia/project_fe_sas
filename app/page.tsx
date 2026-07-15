@@ -11,6 +11,7 @@ import Marquee from "react-fast-marquee";
 // Components
 import Header from "./header";
 import DigitalClock from "./components/digitalclock";
+import { Footer_2, FOOTER_TEXT } from "./version";
 
 // Types
 type Item = {
@@ -574,19 +575,213 @@ const Page = () => {
 
       {/* Footer */}
       <footer className="bg-slate-900 text-center lg:text-left py-4 lg:py-5 lg:rounded-tr-3xl lg:fixed lg:bottom-0 px-4 py-4">
-        <p className="text-sm text-teal-500">
-          Developed by IT BMDev and SIJA major.
+        <p className="text-sm text-teal-500 whitespace-pre-line">
+          {FOOTER_TEXT}
         </p>
-        <p className="text-sm text-teal-500">
-          Copyright &copy; {new Date().getFullYear()} | Budi Mulia Vocational High School
-        </p>
-        <p className="text-sm text-teal-500">
-         <span className="font-mono"> Versi: 1.5.20</span>
+        <p className="text-sm text-teal-500 whitespace-pre-line">
+          {Footer_2}
         </p>
       </footer>
 
-      {/* Popup components - Keep your existing popup code here */}
-      {/* (Sakit, Keterangan Lain, Alpa, Pulang popups remain the same) */}
+      {/* Popup Sakit */}
+      {isPopupVisibleSakit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Daftar Siswa - Sakit</h2>
+            <input
+              type="text"
+              placeholder="Cari nama siswa..."
+              value={searchTermSakit}
+              onChange={(e) => setSearchTermSakit(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-2 border">No</th>
+                    <th className="p-2 border text-start">Nama Siswa</th>
+                    <th className="p-2 border">Kelas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSiswaSakit.length > 0 ? (
+                    filteredSiswaSakit.map((row, index) => (
+                      <tr key={row.id_siswa || index}>
+                        <td className="p-2 border text-center">{index + 1}</td>
+                        <td className="p-2 border">{row.nama_siswa}</td>
+                        <td className="p-2 border text-center">{row.kelas}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="p-2 border text-center">Tidak ada data</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={togglePopupSakit}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Keterangan Lain */}
+      {isPopupVisibleKeteranganLain && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Daftar Siswa - Keterangan Lain</h2>
+            <input
+              type="text"
+              placeholder="Cari nama siswa..."
+              value={searchTermKeterangan}
+              onChange={(e) => setSearchTermKeterangan(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-2 border">No</th>
+                    <th className="p-2 border text-start">Nama Siswa</th>
+                    <th className="p-2 border">Kelas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSiswaKeterangan.length > 0 ? (
+                    filteredSiswaKeterangan.map((row, index) => (
+                      <tr key={row.id_siswa || index}>
+                        <td className="p-2 border text-center">{index + 1}</td>
+                        <td className="p-2 border">{row.nama_siswa}</td>
+                        <td className="p-2 border text-center">{row.kelas}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="p-2 border text-center">Tidak ada data</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={togglePopupKeteranganLain}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Alpa */}
+      {isPopupVisibleAlpa && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Daftar Siswa - Alpa</h2>
+            <input
+              type="text"
+              placeholder="Cari nama siswa..."
+              value={searchTermAlpa}
+              onChange={(e) => setSearchTermAlpa(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-2 border">No</th>
+                    <th className="p-2 border text-start">Nama Siswa</th>
+                    <th className="p-2 border">Kelas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSiswaAlpa.length > 0 ? (
+                    filteredSiswaAlpa.map((row, index) => (
+                      <tr key={row.id_siswa || index}>
+                        <td className="p-2 border text-center">{index + 1}</td>
+                        <td className="p-2 border">{row.nama_siswa}</td>
+                        <td className="p-2 border text-center">{row.kelas}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="p-2 border text-center">Tidak ada data</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={togglePopupAlpa}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Pulang */}
+      {isPopupVisiblePulang && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Daftar Siswa - Pulang</h2>
+            <input
+              type="text"
+              placeholder="Cari nama siswa..."
+              value={searchTermPulang}
+              onChange={(e) => setSearchTermPulang(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-2 border">No</th>
+                    <th className="p-2 border text-start">Nama Siswa</th>
+                    <th className="p-2 border">Kelas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSiswaPulang.length > 0 ? (
+                    filteredSiswaPulang.map((row, index) => (
+                      <tr key={row.id_siswa || index}>
+                        <td className="p-2 border text-center">{index + 1}</td>
+                        <td className="p-2 border">{row.nama_siswa}</td>
+                        <td className="p-2 border text-center">{row.kelas}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="p-2 border text-center">Tidak ada data</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={togglePopupPulang}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
