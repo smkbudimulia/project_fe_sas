@@ -9,6 +9,8 @@ import {
   IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import DataTable from "../components/dataTabel";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Chart.js
 import {
@@ -88,6 +90,7 @@ const AdminPage = () => {
   // Data siswa
   const [siswaBelumAbsen, setSiswaBelumAbsen] = useState<Siswa[]>([]);
   const [alpaData, setAlpaData] = useState<Siswa[]>([]);
+  const [setting, setSetting] = useState<any[]>([]);
 
   // Pagination
   const [currentPageBelumAbsen, setCurrentPageBelumAbsen] = useState(1);
@@ -186,10 +189,12 @@ const AdminPage = () => {
           kelasRes,
           belumAbsenRes,
           alpaRes,
+          settingRes,
         ] = await Promise.all([
           axios.get(`${baseUrl}/joinNonMaster/total-kelas-siswa`),
           fetch(`${baseUrl}/absensi/siswa-belum-absen`),
           fetch(`${baseUrl}/absensi/all-absensi`),
+          axios.get(`${baseUrl}/setting/all-setting`),
         ]);
 
         const kelasData = kelasRes.data;
@@ -211,6 +216,34 @@ const AdminPage = () => {
           );
           setAlpaData(alpaSiswa);
         }
+
+        const today = new Date().toLocaleDateString("id-ID", { weekday: "long" });
+        const normalizeTime = (val: any): string => {
+          if (!val) return "-";
+          if (Array.isArray(val)) return val.join(",");
+          return String(val).replace(/"/g, "");
+        };
+        const filteredSetting = (settingRes.data.data || [])
+          .filter((item: any) => item.hari === today)
+          .map((item: any) => {
+            const jamMasuk = normalizeTime(item.jam_masuk);
+            const jamTerlambat = normalizeTime(item.jam_terlambat);
+            const jamPulang = normalizeTime(item.jam_pulang);
+
+            const [jamMasukAwal, jamMasukAkhir] = jamMasuk.split(",") || ["-", "-"];
+            const [jamTerlambatAwal, jamTerlambatAkhir] = jamTerlambat.split(",") || ["-", "-"];
+            const [jamPulangAwal, jamPulangAkhir] = jamPulang.split(",") || ["-", "-"];
+
+            return {
+              jamMasukAwal: jamMasukAwal.trim().replace(".", ":"),
+              jamMasukAkhir: jamMasukAkhir.trim().replace(".", ":"),
+              jamTerlambatAwal: jamTerlambatAwal.trim().replace(".", ":"),
+              jamTerlambatAkhir: jamTerlambatAkhir.trim().replace(".", ":"),
+              jamPulangAwal: jamPulangAwal.trim().replace(".", ":"),
+              jamPulangAkhir: jamPulangAkhir.trim().replace(".", ":"),
+            };
+          });
+        setSetting(filteredSetting);
       } catch (error) {
         console.error("Error fetching dashboard ", error);
       }
@@ -218,6 +251,175 @@ const AdminPage = () => {
 
     fetchData();
   }, []);
+
+  const refreshData = async () => {
+    try {
+      const [
+        kelasRes,
+        belumAbsenRes,
+        alpaRes,
+        settingRes,
+      ] = await Promise.all([
+        axios.get(`${baseUrl}/joinNonMaster/total-kelas-siswa`),
+        fetch(`${baseUrl}/absensi/siswa-belum-absen`),
+        fetch(`${baseUrl}/absensi/all-absensi`),
+        axios.get(`${baseUrl}/setting/all-setting`),
+      ]);
+
+      const kelasData = kelasRes.data;
+      setKelas(kelasData.data || []);
+      setTotalSemuaSiswa(kelasData.totalSemuaSiswa || 0);
+      setTotalSemuaRombel(kelasData.totalSemuaRombel || 0);
+      setTotalSemuaGuru(kelasData.totalSemuaGuru || 0);
+      setTotalSemuaKehadiran(kelasData.totalKeseluruhan || {});
+      setTotalPerkategori(kelasData.totalSemuaKategori || 0);
+
+      const belumAbsenJson = await belumAbsenRes.json();
+      setSiswaBelumAbsen(belumAbsenJson.data || []);
+
+      const alpaJson = await alpaRes.json();
+      if (alpaJson.Status === 200) {
+        const today = new Date().toISOString().split("T")[0];
+        const alpaSiswa = alpaJson.data.filter(
+          (item: any) => item.keterangan === "Alpa" && item.tanggal === today
+        );
+        setAlpaData(alpaSiswa);
+      }
+
+      const today = new Date().toLocaleDateString("id-ID", { weekday: "long" });
+      const normalizeTime = (val: any): string => {
+        if (!val) return "-";
+        if (Array.isArray(val)) return val.join(",");
+        return String(val).replace(/"/g, "");
+      };
+      const filteredSetting = (settingRes.data.data || [])
+        .filter((item: any) => item.hari === today)
+        .map((item: any) => {
+          const jamMasuk = normalizeTime(item.jam_masuk);
+          const jamTerlambat = normalizeTime(item.jam_terlambat);
+          const jamPulang = normalizeTime(item.jam_pulang);
+
+          const [jamMasukAwal, jamMasukAkhir] = jamMasuk.split(",") || ["-", "-"];
+          const [jamTerlambatAwal, jamTerlambatAkhir] = jamTerlambat.split(",") || ["-", "-"];
+          const [jamPulangAwal, jamPulangAkhir] = jamPulang.split(",") || ["-", "-"];
+
+          return {
+            jamMasukAwal: jamMasukAwal.trim().replace(".", ":"),
+            jamMasukAkhir: jamMasukAkhir.trim().replace(".", ":"),
+            jamTerlambatAwal: jamTerlambatAwal.trim().replace(".", ":"),
+            jamTerlambatAkhir: jamTerlambatAkhir.trim().replace(".", ":"),
+            jamPulangAwal: jamPulangAwal.trim().replace(".", ":"),
+            jamPulangAkhir: jamPulangAkhir.trim().replace(".", ":"),
+          };
+        });
+      setSetting(filteredSetting);
+    } catch (error) {
+      console.error("Error refreshing dashboard ", error);
+    }
+  };
+
+  const handleSakit = async (id_siswa: number) => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      await axios.post(`${baseUrl}/absensi/add-siswa-absensi-sakit`, {
+        id_siswa,
+        keterangan: "Sakit",
+        tanggal: today,
+      });
+      toast.success("Siswa berhasil ditandai sakit");
+      await refreshData();
+    } catch (error) {
+      toast.error("Gagal menandai siswa sakit");
+      console.error(error);
+    }
+  };
+
+  const handleIzin = async (id_siswa: number) => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      await axios.post(`${baseUrl}/absensi/add-siswa-absensi-izin`, {
+        id_siswa,
+        keterangan: "Izin",
+        tanggal: today,
+      });
+      toast.success("Siswa berhasil ditandai izin");
+      await refreshData();
+    } catch (error) {
+      toast.error("Gagal menandai siswa izin");
+      console.error(error);
+    }
+  };
+
+  const timeToMinutes = (time: string): number => {
+    const [h, m] = time.split(":").map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+
+  const handleTanpaKartu = async (id_siswa: number) => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const currentTime = new Date();
+      const hour = currentTime.getHours();
+      const minute = currentTime.getMinutes();
+      const currentTimeStr = `${hour < 10 ? "0" + hour : hour}:${minute < 10 ? "0" + minute : minute}`;
+      const currentMinutes = timeToMinutes(currentTimeStr);
+
+      let keterangan = "";
+      let datang = "";
+      let pulang = "";
+
+      if (setting.length > 0) {
+        const s = setting[0];
+        const masukAwal = timeToMinutes(s.jamMasukAwal);
+        const masukAkhir = timeToMinutes(s.jamMasukAkhir);
+        const terlambatAwal = timeToMinutes(s.jamTerlambatAwal);
+        const terlambatAkhir = timeToMinutes(s.jamTerlambatAkhir);
+        const pulangAwal = timeToMinutes(s.jamPulangAwal);
+        const pulangAkhir = timeToMinutes(s.jamPulangAkhir);
+
+        if (currentMinutes >= masukAwal && currentMinutes <= masukAkhir) {
+          keterangan = "Datang";
+          datang = currentTimeStr;
+        } else if (currentMinutes >= terlambatAwal && currentMinutes <= terlambatAkhir) {
+          keterangan = "Terlambat";
+          datang = currentTimeStr;
+        } else if (currentMinutes >= pulangAwal && currentMinutes <= pulangAkhir) {
+          keterangan = "Pulang";
+          pulang = currentTimeStr;
+        } else {
+          toast.error("Waktu absensi tidak valid");
+          return;
+        }
+      } else {
+        if (hour >= 6 && hour < 7) {
+          keterangan = "Datang";
+          datang = currentTimeStr;
+        } else if (hour >= 7 && hour < 9) {
+          keterangan = "Terlambat";
+          datang = currentTimeStr;
+        } else if (hour >= 14 && hour < 16) {
+          keterangan = "Pulang";
+          pulang = currentTimeStr;
+        } else {
+          toast.error("Waktu absensi tidak valid");
+          return;
+        }
+      }
+
+      await axios.post(`${baseUrl}/absensi/siswa-abseni`, {
+        id_siswa,
+        datang,
+        tanggal: today,
+        pulang,
+        keterangan,
+      });
+      toast.success("Siswa berhasil diabsen tanpa kartu");
+      await refreshData();
+    } catch (error) {
+      toast.error("Gagal absen tanpa kartu");
+      console.error(error);
+    }
+  };
 
   // Pagination helper
   const getPaginatedData = (data: Siswa[], page: number) => {
@@ -241,6 +443,7 @@ const AdminPage = () => {
 
   return (
     <div className="p-4 md:p-6">
+      <ToastContainer position="top-right" style={{ top: "50%", transform: "translateY(-50%)" }} />
       {/* Statistik Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
         {[
@@ -322,32 +525,55 @@ const AdminPage = () => {
             <h3 className="font-semibold text-gray-700 mb-3 text-center">Siswa Belum Absen</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-700 text-white">
-                  <tr>
-                    <th className="px-3 py-2">#</th>
-                    <th className="px-3 py-2">ID</th>
-                    <th className="px-3 py-2">Nama</th>
-                    <th className="px-3 py-2">Kelas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {siswaBelumAbsen.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-3 py-4 text-center text-gray-500">
-                        Semua siswa sudah absen
-                      </td>
-                    </tr>
-                  ) : (
-                    getPaginatedData(siswaBelumAbsen, currentPageBelumAbsen).map((siswa, idx) => (
-                      <tr key={siswa.id_siswa} className="border-b text-gray-700 hover:bg-gray-50">
-                        <td className="px-3 py-2">{(currentPageBelumAbsen - 1) * itemsPerPage + idx + 1}</td>
-                        <td className="px-3 py-2">{siswa.id_siswa}</td>
-                        <td className="px-3 py-2">{siswa.nama_siswa}</td>
-                        <td className="px-3 py-2">{siswa.kelas_rombel}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
+                 <thead className="bg-slate-700 text-white">
+                   <tr>
+                     <th className="px-3 py-2">#</th>
+                     <th className="px-3 py-2">ID</th>
+                     <th className="px-3 py-2">Nama</th>
+                     <th className="px-3 py-2">Kelas</th>
+                     <th className="px-3 py-2">Aksi</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {siswaBelumAbsen.length === 0 ? (
+                     <tr>
+                       <td colSpan={5} className="px-3 py-4 text-center text-gray-500">
+                         Semua siswa sudah absen
+                       </td>
+                     </tr>
+                   ) : (
+                     getPaginatedData(siswaBelumAbsen, currentPageBelumAbsen).map((siswa, idx) => (
+                       <tr key={siswa.id_siswa} className="border-b text-gray-700 hover:bg-gray-50">
+                         <td className="px-3 py-2">{(currentPageBelumAbsen - 1) * itemsPerPage + idx + 1}</td>
+                         <td className="px-3 py-2">{siswa.id_siswa}</td>
+                         <td className="px-3 py-2">{siswa.nama_siswa}</td>
+                         <td className="px-3 py-2">{siswa.kelas_rombel}</td>
+                         <td className="px-3 py-2">
+                           <div className="flex gap-1">
+                             <button
+                               onClick={() => handleSakit(siswa.id_siswa)}
+                               className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                             >
+                               Sakit
+                             </button>
+                             <button
+                               onClick={() => handleIzin(siswa.id_siswa)}
+                               className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                             >
+                               Izin
+                             </button>
+                             <button
+                               onClick={() => handleTanpaKartu(siswa.id_siswa)}
+                               className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                             >
+                               Tanpa Kartu
+                             </button>
+                           </div>
+                         </td>
+                       </tr>
+                     ))
+                   )}
+                 </tbody>
               </table>
             </div>
             {/* Pagination Belum Absen */}
