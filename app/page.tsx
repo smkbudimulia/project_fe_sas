@@ -60,6 +60,18 @@ interface KelasData {
 // Constants
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+// Helper parser agar aman dengan response BE kamu
+const ensureArray = (val: any) => {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    // Menghilangkan tanda kutip ekstra dari format BE '"07:00","08:00"'
+    const cleaned = val.replace(/"/g, '').trim();
+    if (!cleaned) return ['', ''];
+    return cleaned.split(',').map(s => s.trim());
+  }
+  return ['', ''];
+};
+
 const Page = () => {
   const router = useRouter();
   
@@ -75,7 +87,6 @@ const Page = () => {
 
   // State declarations
   const [barcode, setBarcode] = useState("");
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [clickedRowIndex, setClickedRowIndex] = useState<number | null>(null);
   const [id_siswa, setIdSiswa] = useState<string | null>(null);
   const [kelas, setKelas] = useState<KelasData[]>([]);
@@ -83,28 +94,6 @@ const Page = () => {
   const [setting, setSetting] = useState<SplitSettingItem[]>([]);
   const [siswaData, setSiswaData] = useState<Item[]>([]);
   const [siswaKetinggalan, setSiswaKetinggalan] = useState<Item[]>([]);
-
-  // Popup states
-  const [isPopupVisibleSakit, setIsPopupVisibleSakit] = useState(false);
-  const [isPopupVisibleKeteranganLain, setIsPopupVisibleKeteranganLain] = useState(false);
-  const [isPopupVisibleAlpa, setIsPopupVisibleAlpa] = useState(false);
-  const [isPopupVisiblePulang, setIsPopupVisiblePulang] = useState(false);
-
-  // Search states
-  const [searchTermSakit, setSearchTermSakit] = useState("");
-  const [searchTermKeterangan, setSearchTermKeterangan] = useState("");
-  const [searchTermAlpa, setSearchTermAlpa] = useState("");
-  const [searchTermPulang, setSearchTermPulang] = useState("");
-
-  // Pagination states
-  const [sakitItemsPerPage, setSakitItemsPerPage] = useState(5);
-  const [sakitCurrentPage, setSakitCurrentPage] = useState(1);
-  const [keteranganItemsPerPage, setKeteranganItemsPerPage] = useState(5);
-  const [keteranganCurrentPage, setKeteranganCurrentPage] = useState(1);
-  const [alpaItemsPerPage, setAlpaItemsPerPage] = useState(5);
-  const [alpaCurrentPage, setAlpaCurrentPage] = useState(1);
-  const [pulangItemsPerPage, setPulangItemsPerPage] = useState(5);
-  const [pulangCurrentPage, setPulangCurrentPage] = useState(1);
 
   // Refs
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -155,33 +144,44 @@ const Page = () => {
   }, []);
 
   const fetchSetting = useCallback(async () => {
-    try {
-      const today = new Date().toLocaleDateString("id-ID", { weekday: "long" });
-      const response = await axios.get(`${baseUrl}/setting/all-setting`);
-      
-      const filteredData = response.data.data
-        .filter((item: Set) => item.hari === today)
-        .map((item: Set) => {
-          const [jamMasukAwal, jamMasukAkhir] = item.jam_masuk.split(",") || ["-", "-"];
-          const [jamTerlambatAwal, jamTerlambatAkhir] = item.jam_terlambat.split(",") || ["-", "-"];
-          const [jamPulangAwal, jamPulangAkhir] = item.jam_pulang.split(",") || ["-", "-"];
+  try {
+    const today = new Date().toLocaleDateString("id-ID", { weekday: "long" });
+    const response = await axios.get(`${baseUrl}/setting/all-setting`);
+    
+      const normalizeTime = (val: any): string => {
+        if (!val) return "-";
+        if (Array.isArray(val)) return val.join(",");
+        return String(val).replace(/"/g, "");
+      };
 
-          return {
-            hari: item.hari,
-            jamMasukAwal: jamMasukAwal.trim(),
-            jamMasukAkhir: jamMasukAkhir.trim(),
-            jamTerlambatAwal: jamTerlambatAwal.trim(),
-            jamTerlambatAkhir: jamTerlambatAkhir.trim(),
-            jamPulangAwal: jamPulangAwal.trim(),
-            jamPulangAkhir: jamPulangAkhir.trim(),
-          };
-        });
+    const filteredData = (response.data.data || [])
+      .filter((item: Set) => item.hari.toLowerCase() === today.toLowerCase())
+      .map((item: Set) => {
+        const jamMasuk = normalizeTime(item.jam_masuk);
+        const jamTerlambat = normalizeTime(item.jam_terlambat);
+        const jamPulang = normalizeTime(item.jam_pulang);
 
-      setSetting(filteredData);
-    } catch (error) {
-      console.error("Fetch error:", error);
-    }
-  }, []);
+        const [jamMasukAwal, jamMasukAkhir] = jamMasuk.split(",") || ["-", "-"];
+        const [jamTerlambatAwal, jamTerlambatAkhir] = jamTerlambat.split(",") || ["-", "-"];
+        const [jamPulangAwal, jamPulangAkhir] = jamPulang.split(",") || ["-", "-"];
+
+        // Gunakan regex /\\./g agar SEMUA titik diganti menjadi titik dua (:)
+        return {
+          hari: item.hari,
+          jamMasukAwal: (jamMasukAwal || "-").trim().replace(/\./g, ":"),
+          jamMasukAkhir: (jamMasukAkhir || "-").trim().replace(/\./g, ":"),
+          jamTerlambatAwal: (jamTerlambatAwal || "-").trim().replace(/\./g, ":"),
+          jamTerlambatAkhir: (jamTerlambatAkhir || "-").trim().replace(/\./g, ":"),
+          jamPulangAwal: (jamPulangAwal || "-").trim().replace(/\./g, ":"),
+          jamPulangAkhir: (jamPulangAkhir || "-").trim().replace(/\./g, ":"),
+        };
+      });
+
+    setSetting(filteredData);
+  } catch (error) {
+    console.error("Fetch error:", error);
+  }
+}, []);
 
   // Initial data fetching
   useEffect(() => {
@@ -239,10 +239,18 @@ const Page = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Helper functions
-  const handleDropdownToggle = () => {
-    setDropdownVisible(!isDropdownVisible);
-  };
+  // Konversi jam string (format "HH:MM" atau "H:M") ke total menit
+const timeToMinutes = (time: string): number => {
+  if (!time || time === "-") return -1;
+  const parts = time.split(":");
+  if (parts.length < 2) return -1;
+  
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  
+  if (isNaN(h) || isNaN(m)) return -1;
+  return h * 60 + m;
+};
 
   const handleRowClick = (row: Item, index: number) => {
     setClickedRowIndex(index);
@@ -250,30 +258,57 @@ const Page = () => {
   };
 
   const getAbsensiStatus = () => {
-    const currentTime = new Date();
-    const hour = currentTime.getHours();
-    const minute = currentTime.getMinutes();
+  const currentTime = new Date();
+  const hour = currentTime.getHours();
+  const minute = currentTime.getMinutes();
+  const currentMinutes = hour * 60 + minute;
+  const currentTimeStr = `${hour < 10 ? "0" + hour : hour}:${minute < 10 ? "0" + minute : minute}`;
 
-    let keterangan = "";
-    let datang = "";
-    let pulang = "";
+  let keterangan = "";
+  let datang = "";
+  let pulang = "";
 
+  if (setting.length > 0) {
+    const s = setting[0];
+    const masukAwal = timeToMinutes(s.jamMasukAwal);
+    const masukAkhir = timeToMinutes(s.jamMasukAkhir);
+    const terlambatAwal = timeToMinutes(s.jamTerlambatAwal);
+    const terlambatAkhir = timeToMinutes(s.jamTerlambatAkhir);
+    const pulangAwal = timeToMinutes(s.jamPulangAwal);
+    const pulangAkhir = timeToMinutes(s.jamPulangAkhir);
+
+    if (masukAwal !== -1 && masukAkhir !== -1 && currentMinutes >= masukAwal && currentMinutes <= masukAkhir) {
+      keterangan = "Datang";
+      datang = currentTimeStr;
+    } else if (terlambatAwal !== -1 && terlambatAkhir !== -1 && currentMinutes >= terlambatAwal && currentMinutes <= terlambatAkhir) {
+      keterangan = "Terlambat";
+      datang = currentTimeStr;
+    } else if (pulangAwal !== -1 && pulangAkhir !== -1 && currentMinutes >= pulangAwal && currentMinutes <= pulangAkhir) {
+      keterangan = "Pulang";
+      pulang = currentTimeStr;
+    } else {
+      return "Waktu absensi tidak valid";
+    }
+  } else {
+    // Fallback jika data setting dari API kosong
     if (hour >= 6 && hour < 7) {
       keterangan = "Datang";
-      datang = `${hour}:${minute < 10 ? "0" + minute : minute}`;
+      datang = currentTimeStr;
     } else if (hour >= 7 && hour < 9) {
       keterangan = "Terlambat";
-      datang = `${hour}:${minute < 10 ? "0" + minute : minute}`;
+      datang = currentTimeStr;
     } else if (hour >= 9 && hour < 14) {
       keterangan = "Alpa";
     } else if (hour >= 14 && hour < 16) {
       keterangan = "Pulang";
-      pulang = `${hour}:${minute < 10 ? "0" + minute : minute}`;
+      pulang = currentTimeStr;
     } else {
       return "Waktu absensi tidak valid";
     }
-    return { keterangan, datang, pulang };
-  };
+  }
+
+  return { keterangan, datang, pulang };
+};
 
   const showToast = (type: "success" | "error" | "warning", message: string) => {
     const options = {
@@ -352,66 +387,6 @@ const Page = () => {
     }
   };
 
-  // Popup toggle functions
-  const togglePopupSakit = () => {
-    if (isPopupVisibleSakit) {
-      setSakitItemsPerPage(5);
-      setSakitCurrentPage(1);
-      setSearchTermSakit("");
-    }
-    setIsPopupVisibleSakit(!isPopupVisibleSakit);
-  };
-
-  const togglePopupKeteranganLain = () => {
-    if (isPopupVisibleKeteranganLain) {
-      setKeteranganItemsPerPage(5);
-      setKeteranganCurrentPage(1);
-      setSearchTermKeterangan("");
-    }
-    setIsPopupVisibleKeteranganLain(!isPopupVisibleKeteranganLain);
-  };
-
-  const togglePopupAlpa = () => {
-    if (isPopupVisibleAlpa) {
-      setAlpaItemsPerPage(5);
-      setAlpaCurrentPage(1);
-      setSearchTermAlpa("");
-    }
-    setIsPopupVisibleAlpa(!isPopupVisibleAlpa);
-  };
-
-  const togglePopupPulang = () => {
-    if (isPopupVisiblePulang) {
-      setPulangItemsPerPage(5);
-      setPulangCurrentPage(1);
-      setSearchTermPulang("");
-    }
-    setIsPopupVisiblePulang(!isPopupVisiblePulang);
-  };
-
-  // Filtered data
-  const filteredSiswaSakit = siswaData
-    .filter(row => row.nama_siswa.toLowerCase().includes(searchTermSakit.toLowerCase()))
-    .sort((a, b) => a.nama_siswa.localeCompare(b.nama_siswa));
-
-  const filteredSiswaKeterangan = siswaData
-    .filter(row => row.nama_siswa.toLowerCase().includes(searchTermKeterangan.toLowerCase()))
-    .sort((a, b) => a.nama_siswa.localeCompare(b.nama_siswa));
-
-  const filteredSiswaAlpa = siswaKetinggalan
-    .filter(row => row.nama_siswa.toLowerCase().includes(searchTermAlpa.toLowerCase()))
-    .sort((a, b) => a.nama_siswa.localeCompare(b.nama_siswa));
-
-  const filteredSiswaPulang = siswaData
-    .filter(row => row.nama_siswa.toLowerCase().includes(searchTermPulang.toLowerCase()))
-    .sort((a, b) => a.nama_siswa.localeCompare(b.nama_siswa));
-
-  // Total pages
-  const sakitTotalPages = Math.ceil(filteredSiswaSakit.length / sakitItemsPerPage);
-  const keteranganTotalPages = Math.ceil(filteredSiswaKeterangan.length / keteranganItemsPerPage);
-  const alpaTotalPages = Math.ceil(filteredSiswaAlpa.length / alpaItemsPerPage);
-  const pulangTotalPages = Math.ceil(filteredSiswaPulang.length / pulangItemsPerPage);
-
   // Today's date
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long" });
 
@@ -448,54 +423,12 @@ const Page = () => {
             </Marquee>
           </div>
 
-      {/* Action buttons dropdown */}
-      <div className="relative px-4">
-        <div className="text-white py-2 flex items-center">
-          <span
-            onClick={handleDropdownToggle}
-            className="cursor-pointer flex items-end text-gray-200 text-3xl"
-          >
-            {isDropdownVisible ? "▾" : "▸"}
-          </span>
-        </div>
-        
-        {isDropdownVisible && (
-          <div className="lg:absolute lg:w-1/3 lg:p-6 top-full mt-2 z-10">
-            <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 border">
-              <div className="flex flex-col items-center justify-center">
-                <h1 className="font-bold text-xl text-center lg:text-2xl mb-4">
-                  Tombol untuk siswa
-                </h1>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-                    onClick={togglePopupSakit}
-                  >
-                    Sakit
-                  </button>
-                  <button
-                    className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition"
-                    onClick={togglePopupKeteranganLain}
-                  >
-                    Keterangan Lain
-                  </button>
-                  <button
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-                    onClick={togglePopupAlpa}
-                  >
-                    Alpa
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+
 
       {/* Main content */}
       <div className="flex flex-col lg:flex-row items-stretch justify-between p-4 gap-4">
         {/* Left column - Clock and schedule */}
-        <div className={`w-full lg:w-[40%] ${isDropdownVisible ? "mt-40 lg:mt-60" : ""}`}>
+        <div className={`w-full lg:w-[40%]`}>
           <div className="bg-white rounded-lg shadow-lg p-4 mb-4 text-center ">
             <DigitalClock />
           </div>
@@ -583,205 +516,13 @@ const Page = () => {
         </p>
       </footer>
 
-      {/* Popup Sakit */}
-      {isPopupVisibleSakit && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Daftar Siswa - Sakit</h2>
-            <input
-              type="text"
-              placeholder="Cari nama siswa..."
-              value={searchTermSakit}
-              onChange={(e) => setSearchTermSakit(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
-            />
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border">No</th>
-                    <th className="p-2 border text-start">Nama Siswa</th>
-                    <th className="p-2 border">Kelas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSiswaSakit.length > 0 ? (
-                    filteredSiswaSakit.map((row, index) => (
-                      <tr key={row.id_siswa || index}>
-                        <td className="p-2 border text-center">{index + 1}</td>
-                        <td className="p-2 border">{row.nama_siswa}</td>
-                        <td className="p-2 border text-center">{row.kelas}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={3} className="p-2 border text-center">Tidak ada data</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={togglePopupSakit}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Popup Keterangan Lain */}
-      {isPopupVisibleKeteranganLain && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Daftar Siswa - Keterangan Lain</h2>
-            <input
-              type="text"
-              placeholder="Cari nama siswa..."
-              value={searchTermKeterangan}
-              onChange={(e) => setSearchTermKeterangan(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
-            />
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border">No</th>
-                    <th className="p-2 border text-start">Nama Siswa</th>
-                    <th className="p-2 border">Kelas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSiswaKeterangan.length > 0 ? (
-                    filteredSiswaKeterangan.map((row, index) => (
-                      <tr key={row.id_siswa || index}>
-                        <td className="p-2 border text-center">{index + 1}</td>
-                        <td className="p-2 border">{row.nama_siswa}</td>
-                        <td className="p-2 border text-center">{row.kelas}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={3} className="p-2 border text-center">Tidak ada data</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={togglePopupKeteranganLain}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Popup Alpa */}
-      {isPopupVisibleAlpa && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Daftar Siswa - Alpa</h2>
-            <input
-              type="text"
-              placeholder="Cari nama siswa..."
-              value={searchTermAlpa}
-              onChange={(e) => setSearchTermAlpa(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
-            />
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border">No</th>
-                    <th className="p-2 border text-start">Nama Siswa</th>
-                    <th className="p-2 border">Kelas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSiswaAlpa.length > 0 ? (
-                    filteredSiswaAlpa.map((row, index) => (
-                      <tr key={row.id_siswa || index}>
-                        <td className="p-2 border text-center">{index + 1}</td>
-                        <td className="p-2 border">{row.nama_siswa}</td>
-                        <td className="p-2 border text-center">{row.kelas}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={3} className="p-2 border text-center">Tidak ada data</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={togglePopupAlpa}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Popup Pulang */}
-      {isPopupVisiblePulang && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Daftar Siswa - Pulang</h2>
-            <input
-              type="text"
-              placeholder="Cari nama siswa..."
-              value={searchTermPulang}
-              onChange={(e) => setSearchTermPulang(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
-            />
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border">No</th>
-                    <th className="p-2 border text-start">Nama Siswa</th>
-                    <th className="p-2 border">Kelas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSiswaPulang.length > 0 ? (
-                    filteredSiswaPulang.map((row, index) => (
-                      <tr key={row.id_siswa || index}>
-                        <td className="p-2 border text-center">{index + 1}</td>
-                        <td className="p-2 border">{row.nama_siswa}</td>
-                        <td className="p-2 border text-center">{row.kelas}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={3} className="p-2 border text-center">Tidak ada data</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={togglePopupPulang}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+
+
+
     </div>
   );
 };
